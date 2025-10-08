@@ -37,12 +37,14 @@ A aplicação segue a estrutura clássica de um *front-end de compilador*, organ
 ```
 src/
 ├── Main.java
-├── lexer/
+├── lexer/  
+│   ├── Lexer.java
 │   ├── Token.java
-│   └── Lexer.java
+│   └── TokenType.java
 └── parser/
-    ├── Parser.java
     ├── ASTNode.java
+    ├── Parser.java
+    └── Program.java
 
 ```
 
