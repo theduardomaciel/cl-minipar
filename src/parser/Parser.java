@@ -88,7 +88,7 @@ public class Parser {
 
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
             // Verifica se é um método ou atributo
-            if (checkSequence(TokenType.ID, TokenType.ID)) {
+            if (isMethodStart()) {
                 // É um método: tipo id (...)
                 methods.add(methodDeclaration());
             } else if (match(TokenType.VAR)) {
@@ -594,6 +594,31 @@ public class Parser {
         if (current + 1 >= tokens.size()) return false;
         return tokens.get(current).type() == type1 &&
                tokens.get(current + 1).type() == type2;
+    }
+
+    /**
+     * Verifica se o token atual inicia uma declaração de método.
+     * Um método começa com um tipo de retorno seguido de um identificador.
+     * @return true se é início de método, false caso contrário.
+     */
+    private boolean isMethodStart() {
+        if (isAtEnd()) return false;
+
+        TokenType currentType = peek().type();
+
+        // Verifica se é um tipo de retorno válido (void, string, number, bool ou ID customizado)
+        boolean isReturnType = currentType == TokenType.TYPE_VOID ||
+                               currentType == TokenType.TYPE_STRING ||
+                               currentType == TokenType.TYPE_NUMBER ||
+                               currentType == TokenType.TYPE_BOOL ||
+                               currentType == TokenType.ID;
+
+        // Verifica se o próximo token é um ID (nome do método)
+        if (isReturnType && current + 1 < tokens.size()) {
+            return tokens.get(current + 1).type() == TokenType.ID;
+        }
+
+        return false;
     }
 
     /**

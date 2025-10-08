@@ -1,0 +1,50 @@
+# Exemplo 3: Sistema Bancário OOP
+# Tema 2 - Compiladores 2025.1
+
+class ContaBancaria {
+    var titular: string
+    var saldo: number
+    var numero: string
+
+    void depositar(valor: number) {
+        if (valor > 0) {
+            saldo = saldo + valor
+            print("Depósito realizado: ", valor)
+        }
+    }
+
+    void sacar(valor: number) {
+        if (valor > 0 && valor <= saldo) {
+            saldo = saldo - valor
+            print("Saque realizado: ", valor)
+        } else {
+            print("Saldo insuficiente!")
+        }
+    }
+
+    number getSaldo() {
+        return saldo
+    }
+
+    void setTitular(t: string) {
+        titular = t
+    }
+}
+
+class ContaPoupanca extends ContaBancaria {
+    var taxaRendimento: number
+
+    void aplicarRendimento() {
+        var rendimento: number = saldo * taxaRendimento
+        saldo = saldo + rendimento
+        print("Rendimento aplicado: ", rendimento)
+    }
+}
+
+# Teste do sistema bancário
+var conta: ContaPoupanca = new ContaPoupanca()
+conta.setTitular("Eduardo Silva")
+conta.depositar(1000)
+conta.sacar(200)
+print("Saldo atual: ", conta.getSaldo())
+

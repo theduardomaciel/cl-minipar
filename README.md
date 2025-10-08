@@ -45,7 +45,6 @@ src/
     ├── ASTNode.java
     ├── Parser.java
     └── Program.java
-
 ```
 
 ### Principais conceitos:
@@ -68,7 +67,7 @@ x = 3 + 5;
 
 ```bash
 javac src/*.java
-java -cp src Main test.minipar
+java -cp src Main
 ```
 
 ### Saída esperada

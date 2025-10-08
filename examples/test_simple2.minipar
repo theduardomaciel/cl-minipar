@@ -1,4 +1,4 @@
-# Exemplo 4: Funções e Variáveis Simples
+# Exemplo 2: Funções e controle de fluxo
 # Tema 2 - Compiladores 2025.1
 
 var a: number = 10

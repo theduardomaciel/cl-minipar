@@ -1,50 +1,47 @@
-# Exemplo 3: Sistema Bancário OOP
+# Exemplo 2: Sistema de Calculadora OOP
 # Tema 2 - Compiladores 2025.1
 
-class ContaBancaria {
-    var titular: string
-    var saldo: number
-    var numero: string
+class Calculadora {
+    var resultado: number
 
-    void depositar(valor: number) {
-        if (valor > 0) {
-            saldo = saldo + valor
-            print("Depósito realizado: ", valor)
-        }
+    number somar(a: number, b: number) {
+        resultado = a + b
+        return resultado
     }
 
-    void sacar(valor: number) {
-        if (valor > 0 && valor <= saldo) {
-            saldo = saldo - valor
-            print("Saque realizado: ", valor)
+    number subtrair(a: number, b: number) {
+        resultado = a - b
+        return resultado
+    }
+
+    number multiplicar(a: number, b: number) {
+        resultado = a * b
+        return resultado
+    }
+
+    number dividir(a: number, b: number) {
+        if (b != 0) {
+            resultado = a / b
+            return resultado
         } else {
-            print("Saldo insuficiente!")
+            print("Erro: Divisão por zero!")
+            return 0
         }
     }
 
-    number getSaldo() {
-        return saldo
-    }
-
-    void setTitular(t: string) {
-        titular = t
+    number getResultado() {
+        return resultado
     }
 }
 
-class ContaPoupanca extends ContaBancaria {
-    var taxaRendimento: number
+# Uso da calculadora
+var calc: Calculadora = new Calculadora()
 
-    void aplicarRendimento() {
-        var rendimento: number = saldo * taxaRendimento
-        saldo = saldo + rendimento
-        print("Rendimento aplicado: ", rendimento)
-    }
-}
+var x: number = 10
+var y: number = 5
 
-# Teste do sistema bancário
-var conta: ContaPoupanca = new ContaPoupanca()
-conta.setTitular("Eduardo Silva")
-conta.depositar(1000)
-conta.sacar(200)
-print("Saldo atual: ", conta.getSaldo())
+print("Soma: ", calc.somar(x, y))
+print("Subtração: ", calc.subtrair(x, y))
+print("Multiplicação: ", calc.multiplicar(x, y))
+print("Divisão: ", calc.dividir(x, y))
 

@@ -1,47 +1,16 @@
-# Exemplo 2: Sistema de Calculadora OOP
+# Exemplo 2: Herança e Polimorfismo OOP
 # Tema 2 - Compiladores 2025.1
 
-class Calculadora {
-    var resultado: number
+class Animal {
+    var nome: string
 
-    number somar(a: number, b: number) {
-        resultado = a + b
-        return resultado
-    }
-
-    number subtrair(a: number, b: number) {
-        resultado = a - b
-        return resultado
-    }
-
-    number multiplicar(a: number, b: number) {
-        resultado = a * b
-        return resultado
-    }
-
-    number dividir(a: number, b: number) {
-        if (b != 0) {
-            resultado = a / b
-            return resultado
-        } else {
-            print("Erro: Divisão por zero!")
-            return 0
-        }
-    }
-
-    number getResultado() {
-        return resultado
+    void emitirSom() {
+        print("Som genérico")
     }
 }
 
-# Uso da calculadora
-var calc: Calculadora = new Calculadora()
-
-var x: number = 10
-var y: number = 5
-
-print("Soma: ", calc.somar(x, y))
-print("Subtração: ", calc.subtrair(x, y))
-print("Multiplicação: ", calc.multiplicar(x, y))
-print("Divisão: ", calc.dividir(x, y))
-
+class Cachorro extends Animal {
+    void emitirSom() {
+        print("Au au!")
+    }
+}
