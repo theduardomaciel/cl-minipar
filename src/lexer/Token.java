@@ -1,41 +1,23 @@
 package lexer;
 
 /**
- * Classe Token - Representa um token reconhecido pelo Lexer
- * Tema 2 - Compiladores 2025.1
+ * Representa um token identificado pelo lexer.
+ *
+ * @param type   Tipo do token.
+ * @param lexeme Texto correspondente ao token.
+ * @param line   Linha onde o token foi encontrado.
+ * @param column Coluna onde o token foi encontrado.
  */
-public class Token {
-    private final TokenType type;
-    private final String lexeme;
-    private final int line;
-    private final int column;
+public record Token(TokenType type, String lexeme, int line, int column) {
 
-    public Token(TokenType type, String lexeme, int line, int column) {
-        this.type = type;
-        this.lexeme = lexeme;
-        this.line = line;
-        this.column = column;
-    }
-
-    public TokenType getType() {
-        return type;
-    }
-
-    public String getLexeme() {
-        return lexeme;
-    }
-
-    public int getLine() {
-        return line;
-    }
-
-    public int getColumn() {
-        return column;
-    }
-
+    /**
+     * Retorna uma representação em string do token.
+     *
+     * @return String formatada com os detalhes do token.
+     */
     @Override
     public String toString() {
         return String.format("Token{type=%s, lexeme='%s', line=%d, col=%d}",
-                           type, lexeme, line, column);
+                type, lexeme, line, column);
     }
 }

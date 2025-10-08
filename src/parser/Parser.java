@@ -6,22 +6,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Analisador Sintático (Parser) para a linguagem MiniPar OOP
- * Tema 2 - Compiladores 2025.1
- * Parser Descendente Recursivo que constrói uma Árvore Sintática Abstrata (AST)
- * com suporte a Programação Orientada a Objetos
+ * Parser Descendente Recursivo para construção de Árvore Sintática Abstrata (AST)
+ * com suporte a Programação Orientada a Objetos.
+ * <p>
+ * Responsável por analisar uma lista de tokens e construir a estrutura sintática
+ * correspondente ao código-fonte, incluindo suporte a classes, funções, variáveis,
+ * blocos sequenciais e paralelos, expressões e instruções de controle de fluxo.
  */
 public class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    /**
+     * Construtor do Parser.
+     * @param tokens Lista de tokens a serem analisados.
+     */
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
 
     /**
-     * Ponto de entrada do parser
-     * programa ::= { declaracao }
+     * Ponto de entrada do parser.
+     * Realiza o parsing do programa, retornando a AST principal.
+     * @return Program ASTNode representando o programa.
      */
     public Program parse() {
         List<ASTNode> statements = new ArrayList<>();
@@ -42,7 +49,9 @@ public class Parser {
     }
 
     /**
-     * declaracao ::= classDecl | funcDecl | varDecl | statement
+     * Realiza o parsing de uma declaração.
+     * @return ASTNode da declaração encontrada.
+     * @throws ParseException em caso de erro sintático.
      */
     private ASTNode declaration() {
         try {
@@ -63,16 +72,17 @@ public class Parser {
     }
 
     /**
-     * classDecl ::= "class" ID [ "extends" ID ] "{" { varDecl | methodDecl } "}"
+     * Realiza o parsing de uma declaração de classe.
+     * @return ClassDecl representando a classe.
      */
     private ClassDecl classDeclaration() {
         Token nameToken = consume(TokenType.ID, "Esperado nome da classe");
-        String className = nameToken.getLexeme();
+        String className = nameToken.lexeme();
 
         String superClass = null;
         if (match(TokenType.EXTENDS)) {
             Token superToken = consume(TokenType.ID, "Esperado nome da superclasse");
-            superClass = superToken.getLexeme();
+            superClass = superToken.lexeme();
         }
 
         consume(TokenType.LEFT_BRACE, "Esperado '{' após declaração da classe");
@@ -99,14 +109,15 @@ public class Parser {
     }
 
     /**
-     * methodDecl ::= tipo ID "(" parametros ")" "{" { statement } "}"
+     * Realiza o parsing de uma declaração de método.
+     * @return MethodDecl representando o método.
      */
     private MethodDecl methodDeclaration() {
         Token returnTypeToken = advance();
-        String returnType = returnTypeToken.getLexeme();
+        String returnType = returnTypeToken.lexeme();
 
         Token nameToken = consume(TokenType.ID, "Esperado nome do método");
-        String methodName = nameToken.getLexeme();
+        String methodName = nameToken.lexeme();
 
         consume(TokenType.LEFT_PAREN, "Esperado '(' após nome do método");
         List<Parameter> parameters = parameters();
@@ -120,11 +131,12 @@ public class Parser {
     }
 
     /**
-     * funcDecl ::= "func" ID "(" parametros ")" "->" tipo "{" { statement } "}"
+     * Realiza o parsing de uma declaração de função.
+     * @return FuncDecl representando a função.
      */
     private FuncDecl functionDeclaration() {
         Token nameToken = consume(TokenType.ID, "Esperado nome da função");
-        String funcName = nameToken.getLexeme();
+        String funcName = nameToken.lexeme();
 
         consume(TokenType.LEFT_PAREN, "Esperado '(' após nome da função");
         List<Parameter> parameters = parameters();
@@ -132,7 +144,7 @@ public class Parser {
 
         consume(TokenType.ARROW, "Esperado '->' após parâmetros da função");
         Token returnTypeToken = advance();
-        String returnType = returnTypeToken.getLexeme();
+        String returnType = returnTypeToken.lexeme();
 
         consume(TokenType.LEFT_BRACE, "Esperado '{' antes do corpo da função");
         List<ASTNode> body = block();
@@ -142,7 +154,8 @@ public class Parser {
     }
 
     /**
-     * parametros ::= [ parametro { "," parametro } ]
+     * Realiza o parsing da lista de parâmetros.
+     * @return Lista de parâmetros.
      */
     private List<Parameter> parameters() {
         List<Parameter> params = new ArrayList<>();
@@ -153,7 +166,7 @@ public class Parser {
                 consume(TokenType.COLON, "Esperado ':' após nome do parâmetro");
                 Token paramType = advance();
 
-                params.add(new Parameter(paramName.getLexeme(), paramType.getLexeme()));
+                params.add(new Parameter(paramName.lexeme(), paramType.lexeme()));
             } while (match(TokenType.COMMA));
         }
 
@@ -161,15 +174,16 @@ public class Parser {
     }
 
     /**
-     * varDecl ::= "var" ID ":" tipo [ "=" expression ]
+     * Realiza o parsing de uma declaração de variável.
+     * @return VarDecl representando a variável.
      */
     private VarDecl varDeclaration() {
         Token nameToken = consume(TokenType.ID, "Esperado nome da variável");
-        String varName = nameToken.getLexeme();
+        String varName = nameToken.lexeme();
 
         consume(TokenType.COLON, "Esperado ':' após nome da variável");
         Token typeToken = advance();
-        String type = typeToken.getLexeme();
+        String type = typeToken.lexeme();
 
         ASTNode initializer = null;
         if (match(TokenType.EQUAL)) {
@@ -180,8 +194,8 @@ public class Parser {
     }
 
     /**
-     * statement ::= exprStmt | ifStmt | whileStmt | returnStmt | breakStmt |
-     *               continueStmt | seqBlock | parBlock | block
+     * Realiza o parsing de uma instrução.
+     * @return ASTNode da instrução.
      */
     private ASTNode statement() {
         if (match(TokenType.IF)) return ifStatement();
@@ -201,7 +215,8 @@ public class Parser {
     }
 
     /**
-     * ifStmt ::= "if" "(" expression ")" statement [ "else" statement ]
+     * Realiza o parsing de uma instrução condicional if.
+     * @return IfStmt representando o if.
      */
     private IfStmt ifStatement() {
         consume(TokenType.LEFT_PAREN, "Esperado '(' após 'if'");
@@ -223,7 +238,8 @@ public class Parser {
     }
 
     /**
-     * whileStmt ::= "while" "(" expression ")" statement
+     * Realiza o parsing de uma instrução de repetição while.
+     * @return WhileStmt representando o while.
      */
     private WhileStmt whileStatement() {
         consume(TokenType.LEFT_PAREN, "Esperado '(' após 'while'");
@@ -238,7 +254,8 @@ public class Parser {
     }
 
     /**
-     * returnStmt ::= "return" expression
+     * Realiza o parsing de uma instrução de retorno.
+     * @return ReturnStmt representando o retorno.
      */
     private ReturnStmt returnStatement() {
         ASTNode value = null;
@@ -249,7 +266,8 @@ public class Parser {
     }
 
     /**
-     * seqBlock ::= "seq" "{" { statement } "}"
+     * Realiza o parsing de um bloco sequencial.
+     * @return SeqBlock representando o bloco seq.
      */
     private SeqBlock seqBlock() {
         consume(TokenType.LEFT_BRACE, "Esperado '{' após 'seq'");
@@ -259,7 +277,8 @@ public class Parser {
     }
 
     /**
-     * parBlock ::= "par" "{" { statement } "}"
+     * Realiza o parsing de um bloco paralelo.
+     * @return ParBlock representando o bloco par.
      */
     private ParBlock parBlock() {
         consume(TokenType.LEFT_BRACE, "Esperado '{' após 'par'");
@@ -269,7 +288,8 @@ public class Parser {
     }
 
     /**
-     * block ::= { statement }
+     * Realiza o parsing de um bloco de instruções.
+     * @return Lista de ASTNode representando o bloco.
      */
     private List<ASTNode> block() {
         List<ASTNode> statements = new ArrayList<>();
@@ -285,21 +305,24 @@ public class Parser {
     }
 
     /**
-     * exprStmt ::= expression
+     * Realiza o parsing de uma expressão como instrução.
+     * @return ASTNode da expressão.
      */
     private ASTNode expressionStatement() {
         return expression();
     }
 
     /**
-     * expression ::= assignment
+     * Realiza o parsing de uma expressão.
+     * @return ASTNode da expressão.
      */
     private ASTNode expression() {
         return assignment();
     }
 
     /**
-     * assignment ::= ID "=" assignment | logicOr
+     * Realiza o parsing de uma expressão de atribuição.
+     * @return ASTNode da atribuição.
      */
     private ASTNode assignment() {
         ASTNode expr = logicOr();
@@ -319,13 +342,14 @@ public class Parser {
     }
 
     /**
-     * logicOr ::= logicAnd { "||" logicAnd }
+     * Realiza o parsing de uma expressão lógica OR.
+     * @return ASTNode da expressão lógica OR.
      */
     private ASTNode logicOr() {
         ASTNode expr = logicAnd();
 
         while (match(TokenType.OR)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = logicAnd();
             expr = new BinaryExpr(expr, operator, right);
         }
@@ -334,13 +358,14 @@ public class Parser {
     }
 
     /**
-     * logicAnd ::= equality { "&&" equality }
+     * Realiza o parsing de uma expressão lógica AND.
+     * @return ASTNode da expressão lógica AND.
      */
     private ASTNode logicAnd() {
         ASTNode expr = equality();
 
         while (match(TokenType.AND)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = equality();
             expr = new BinaryExpr(expr, operator, right);
         }
@@ -349,13 +374,14 @@ public class Parser {
     }
 
     /**
-     * equality ::= comparison { ( "==" | "!=" ) comparison }
+     * Realiza o parsing de uma expressão de igualdade.
+     * @return ASTNode da expressão de igualdade.
      */
     private ASTNode equality() {
         ASTNode expr = comparison();
 
         while (match(TokenType.EQUAL_EQUAL, TokenType.NOT_EQUAL)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = comparison();
             expr = new BinaryExpr(expr, operator, right);
         }
@@ -364,13 +390,14 @@ public class Parser {
     }
 
     /**
-     * comparison ::= term { ( ">" | ">=" | "<" | "<=" ) term }
+     * Realiza o parsing de uma expressão de comparação.
+     * @return ASTNode da expressão de comparação.
      */
     private ASTNode comparison() {
         ASTNode expr = term();
 
         while (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = term();
             expr = new BinaryExpr(expr, operator, right);
         }
@@ -379,13 +406,14 @@ public class Parser {
     }
 
     /**
-     * term ::= factor { ( "+" | "-" ) factor }
+     * Realiza o parsing de uma expressão de termo (adição/subtração).
+     * @return ASTNode da expressão de termo.
      */
     private ASTNode term() {
         ASTNode expr = factor();
 
         while (match(TokenType.PLUS, TokenType.MINUS)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = factor();
             expr = new BinaryExpr(expr, operator, right);
         }
@@ -394,13 +422,14 @@ public class Parser {
     }
 
     /**
-     * factor ::= unary { ( "*" | "/" | "%" ) unary }
+     * Realiza o parsing de uma expressão de fator (multiplicação/divisão/módulo).
+     * @return ASTNode da expressão de fator.
      */
     private ASTNode factor() {
         ASTNode expr = unary();
 
         while (match(TokenType.STAR, TokenType.SLASH, TokenType.MOD)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = unary();
             expr = new BinaryExpr(expr, operator, right);
         }
@@ -409,11 +438,12 @@ public class Parser {
     }
 
     /**
-     * unary ::= ( "!" | "-" ) unary | call
+     * Realiza o parsing de uma expressão unária.
+     * @return ASTNode da expressão unária.
      */
     private ASTNode unary() {
         if (match(TokenType.BANG, TokenType.MINUS)) {
-            String operator = previous().getLexeme();
+            String operator = previous().lexeme();
             ASTNode right = unary();
             return new UnaryExpr(operator, right);
         }
@@ -422,7 +452,8 @@ public class Parser {
     }
 
     /**
-     * call ::= primary { "(" arguments ")" | "." ID }
+     * Realiza o parsing de uma chamada de função ou acesso de propriedade.
+     * @return ASTNode da chamada ou acesso.
      */
     private ASTNode call() {
         ASTNode expr = primary();
@@ -437,10 +468,10 @@ public class Parser {
                 if (match(TokenType.LEFT_PAREN)) {
                     List<ASTNode> arguments = arguments();
                     consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos");
-                    expr = new MethodCall(expr, name.getLexeme(), arguments);
+                    expr = new MethodCall(expr, name.lexeme(), arguments);
                 } else {
                     // É acesso a propriedade - por enquanto tratamos como identifier
-                    expr = new Identifier(name.getLexeme());
+                    expr = new Identifier(name.lexeme());
                 }
             } else {
                 break;
@@ -451,7 +482,10 @@ public class Parser {
     }
 
     /**
-     * Finaliza uma chamada de função
+     * Finaliza uma chamada de função.
+     * @param callee ASTNode representando o alvo da chamada.
+     * @return ASTNode da chamada de função.
+     * @throws ParseException se a chamada for inválida.
      */
     private ASTNode finishCall(ASTNode callee) {
         List<ASTNode> arguments = arguments();
@@ -465,7 +499,8 @@ public class Parser {
     }
 
     /**
-     * arguments ::= [ expression { "," expression } ]
+     * Realiza o parsing da lista de argumentos de chamada.
+     * @return Lista de ASTNode representando os argumentos.
      */
     private List<ASTNode> arguments() {
         List<ASTNode> args = new ArrayList<>();
@@ -480,8 +515,9 @@ public class Parser {
     }
 
     /**
-     * primary ::= NUMBER | STRING | "true" | "false" | ID |
-     *             "new" ID "(" arguments ")" | "(" expression ")"
+     * Realiza o parsing de uma expressão primária.
+     * @return ASTNode da expressão primária.
+     * @throws ParseException se não encontrar expressão válida.
      */
     private ASTNode primary() {
         if (match(TokenType.TRUE)) {
@@ -492,7 +528,7 @@ public class Parser {
         }
 
         if (match(TokenType.NUMBER)) {
-            String lexeme = previous().getLexeme();
+            String lexeme = previous().lexeme();
             if (lexeme.contains(".")) {
                 return new Literal(Double.parseDouble(lexeme));
             } else {
@@ -501,7 +537,7 @@ public class Parser {
         }
 
         if (match(TokenType.STRING)) {
-            return new Literal(previous().getLexeme());
+            return new Literal(previous().lexeme());
         }
 
         if (match(TokenType.NEW)) {
@@ -509,11 +545,11 @@ public class Parser {
             consume(TokenType.LEFT_PAREN, "Esperado '(' após nome da classe");
             List<ASTNode> arguments = arguments();
             consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos do construtor");
-            return new NewInstance(className.getLexeme(), arguments);
+            return new NewInstance(className.lexeme(), arguments);
         }
 
         if (match(TokenType.ID)) {
-            return new Identifier(previous().getLexeme());
+            return new Identifier(previous().lexeme());
         }
 
         if (match(TokenType.LEFT_PAREN)) {
@@ -527,6 +563,11 @@ public class Parser {
 
     // ===== Métodos auxiliares =====
 
+    /**
+     * Verifica se o próximo token corresponde a algum dos tipos informados e avança.
+     * @param types Tipos de token a verificar.
+     * @return true se algum tipo corresponde, false caso contrário.
+     */
     private boolean match(TokenType... types) {
         for (TokenType type : types) {
             if (check(type)) {
@@ -537,53 +578,96 @@ public class Parser {
         return false;
     }
 
+    /**
+     * Verifica se o próximo token corresponde ao tipo informado.
+     * @param type Tipo de token a verificar.
+     * @return true se corresponde, false caso contrário.
+     */
     private boolean check(TokenType type) {
         if (isAtEnd()) return false;
-        return peek().getType() == type;
+        return peek().type() == type;
     }
 
+    /**
+     * Verifica se os próximos dois tokens correspondem à sequência informada.
+     * @param type1 Tipo do primeiro token.
+     * @param type2 Tipo do segundo token.
+     * @return true se ambos correspondem, false caso contrário.
+     */
     private boolean checkSequence(TokenType type1, TokenType type2) {
         if (current + 1 >= tokens.size()) return false;
-        return tokens.get(current).getType() == type1 &&
-               tokens.get(current + 1).getType() == type2;
+        return tokens.get(current).type() == type1 &&
+               tokens.get(current + 1).type() == type2;
     }
 
+    /**
+     * Avança para o próximo token.
+     * @return Token anterior ao avanço.
+     */
     private Token advance() {
         if (!isAtEnd()) current++;
         return previous();
     }
 
+    /**
+     * Verifica se chegou ao final da lista de tokens.
+     * @return true se está no final, false caso contrário.
+     */
     private boolean isAtEnd() {
-        return peek().getType() == TokenType.EOF;
+        return peek().type() == TokenType.EOF;
     }
 
+    /**
+     * Retorna o token atual.
+     * @return Token atual.
+     */
     private Token peek() {
         return tokens.get(current);
     }
 
+    /**
+     * Retorna o token anterior.
+     * @return Token anterior.
+     */
     private Token previous() {
         return tokens.get(current - 1);
     }
 
+    /**
+     * Consome o próximo token se corresponder ao tipo informado.
+     * @param type Tipo esperado.
+     * @param message Mensagem de erro caso não corresponda.
+     * @return Token consumido.
+     * @throws ParseException se o tipo não corresponder.
+     */
     private Token consume(TokenType type, String message) {
         if (check(type)) return advance();
         throw error(peek(), message);
     }
 
+    /**
+     * Cria uma exceção de erro sintático.
+     * @param token Token onde ocorreu o erro.
+     * @param message Mensagem de erro.
+     * @return ParseException criada.
+     */
     private ParseException error(Token token, String message) {
-        String error = "[Erro Sintático] Linha " + token.getLine() +
-                      ", Coluna " + token.getColumn() + ": " + message +
-                      " (encontrado: '" + token.getLexeme() + "')";
+        String error = "[Erro Sintático] Linha " + token.line() +
+                      ", Coluna " + token.column() + ": " + message +
+                      " (encontrado: '" + token.lexeme() + "')";
         return new ParseException(error);
     }
 
+    /**
+     * Sincroniza o parser após um erro, avançando até um ponto seguro.
+     */
     private void synchronize() {
         advance();
 
         while (!isAtEnd()) {
-            if (previous().getType() == TokenType.NEWLINE) return;
+            if (previous().type() == TokenType.NEWLINE) return;
 
-            switch (peek().getType()) {
+            switch (peek().type()) {
                 case CLASS:
                 case FUNC:
                 case VAR:
@@ -599,9 +683,13 @@ public class Parser {
 }
 
 /**
- * Exceção customizada para erros de parsing
+ * Exceção customizada para erros de parsing.
  */
 class ParseException extends RuntimeException {
+    /**
+     * Construtor da exceção de parsing.
+     * @param message Mensagem de erro.
+     */
     public ParseException(String message) {
         super(message);
     }

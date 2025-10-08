@@ -6,19 +6,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Analisador Léxico (Lexer) para a linguagem MiniPar OOP
- * Tema 2 - Compiladores 2025.1
- *
- * Responsável por transformar o código-fonte em uma sequência de tokens
+ * Classe responsável pela análise léxica do código-fonte da linguagem MiniPar OOP.
+ * Converte o texto de entrada em uma lista de tokens, identificando palavras-chave,
+ * operadores, delimitadores, literais e identificadores.
+ * <p>
+ * Utilizada como etapa inicial do processo de compilação/interpretação.
  */
 public class Lexer {
+    /** Código-fonte a ser analisado */
     private final String source;
+    /** Lista de tokens reconhecidos */
     private final List<Token> tokens = new ArrayList<>();
+    /** Índice do início do token atual */
     private int start = 0;
+    /** Índice do caractere atual */
     private int current = 0;
+    /** Número da linha atual (inicia em 1) */
     private int line = 1;
+    /** Número da coluna atual (inicia em 1) */
     private int column = 1;
 
+    /**
+     * Mapeamento de palavras-chave para seus respectivos tipos de token.
+     * Inclui comandos de controle, tipos, operadores e palavras reservadas da linguagem.
+     */
     private static final Map<String, TokenType> keywords = new HashMap<>();
 
     static {
@@ -60,12 +71,17 @@ public class Lexer {
         keywords.put("s_channel", TokenType.S_CHANNEL);
     }
 
+    /**
+     * Construtor do analisador léxico.
+     * @param source Código-fonte a ser analisado
+     */
     public Lexer(String source) {
         this.source = source;
     }
 
     /**
-     * Realiza a análise léxica completa do código fonte
+     * Realiza a análise léxica completa do código fonte.
+     * Percorre todo o texto, reconhecendo e armazenando tokens.
      * @return Lista de tokens reconhecidos
      */
     public List<Token> scanTokens() {
@@ -74,12 +90,14 @@ public class Lexer {
             scanToken();
         }
 
+        // Adiciona token de fim de arquivo
         tokens.add(new Token(TokenType.EOF, "", line, column));
         return tokens;
     }
 
     /**
-     * Reconhece um único token
+     * Reconhece e adiciona um único token à lista, de acordo com o caractere atual.
+     * Utiliza switch para identificar delimitadores, operadores, literais, comentários e identificadores.
      */
     private void scanToken() {
         char c = advance();
@@ -105,14 +123,14 @@ public class Lexer {
             // Operadores que podem ser compostos
             case '-':
                 if (match('>')) {
-                    addToken(TokenType.ARROW);
+                    addToken(TokenType.ARROW); // Operador de seta
                 } else {
                     addToken(TokenType.MINUS);
                 }
                 break;
             case '/':
                 if (match('/')) {
-                    // Comentário de linha - ignora até o fim da linha
+                    // Comentário de linha: ignora até o fim da linha
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else if (match('*')) {
                     // Comentário de bloco
@@ -135,21 +153,21 @@ public class Lexer {
                 break;
             case '&':
                 if (match('&')) {
-                    addToken(TokenType.AND);
+                    addToken(TokenType.AND); // Operador lógico AND
                 }
                 break;
             case '|':
                 if (match('|')) {
-                    addToken(TokenType.OR);
+                    addToken(TokenType.OR); // Operador lógico OR
                 }
                 break;
 
-            // Comentário Python-style
+            // Comentário estilo Python
             case '#':
                 while (peek() != '\n' && !isAtEnd()) advance();
                 break;
 
-            // Whitespace
+            // Espaços em branco (whitespace)
             case ' ':
             case '\r':
             case '\t':
@@ -160,7 +178,7 @@ public class Lexer {
                 column = 0;
                 break;
 
-            // String literal
+            // Literal de string (string literal)
             case '"':
                 string();
                 break;
@@ -178,7 +196,9 @@ public class Lexer {
     }
 
     /**
-     * Reconhece comentários de bloco
+     * Reconhece comentários de bloco (/* ... *&#47;).
+     * Avança até encontrar o fechamento ou o fim do arquivo.
+     * Emite erro caso o comentário não seja fechado.
      */
     private void blockComment() {
         while (!isAtEnd()) {
@@ -197,7 +217,9 @@ public class Lexer {
     }
 
     /**
-     * Reconhece strings
+     * Reconhece literais de string delimitados por aspas duplas.
+     * Permite quebra de linha dentro da string.
+     * Emite erro caso a string não seja fechada.
      */
     private void string() {
         while (peek() != '"' && !isAtEnd()) {
@@ -222,22 +244,25 @@ public class Lexer {
     }
 
     /**
-     * Reconhece números (inteiros e decimais)
+     * Reconhece números inteiros e decimais.
+     * Aceita ponto para números decimais.
      */
     private void number() {
         while (isDigit(peek())) advance();
 
         // Verifica se é decimal
         if (peek() == '.' && isDigit(peekNext())) {
-            advance(); // consome o '.'
-            while (isDigit(peek())) advance();
+            do advance(); // consome o '.'
+            while (isDigit(peek()));
         }
 
         addToken(TokenType.NUMBER);
     }
 
     /**
-     * Reconhece identificadores e palavras-chave
+     * Reconhece identificadores e palavras-chave.
+     * Identificadores podem conter letras, dígitos e underline.
+     * Se o texto corresponder a uma palavra-chave, atribui o tipo correspondente.
      */
     private void identifier() {
         while (isAlphaNumeric(peek())) advance();
@@ -249,6 +274,11 @@ public class Lexer {
 
     // Métodos auxiliares
 
+    /**
+     * Verifica se o próximo caractere corresponde ao esperado e avança se verdadeiro.
+     * @param expected Caractere esperado
+     * @return true se corresponde, false caso contrário
+     */
     private boolean match(char expected) {
         if (isAtEnd()) return false;
         if (source.charAt(current) != expected) return false;
@@ -258,49 +288,94 @@ public class Lexer {
         return true;
     }
 
+    /**
+     * Retorna o caractere atual sem avançar o índice.
+     * @return Caractere atual ou '\0' se fim do texto
+     */
     private char peek() {
         if (isAtEnd()) return '\0';
         return source.charAt(current);
     }
 
+    /**
+     * Retorna o próximo caractere sem avançar o índice.
+     * @return Próximo caractere ou '\0' se fim do texto
+     */
     private char peekNext() {
         if (current + 1 >= source.length()) return '\0';
         return source.charAt(current + 1);
     }
 
+    /**
+     * Verifica se o caractere é um dígito (0-9).
+     * @param c Caractere a verificar
+     * @return true se for dígito
+     */
     private boolean isDigit(char c) {
         return c >= '0' && c <= '9';
     }
 
+    /**
+     * Verifica se o caractere é uma letra (a-z, A-Z) ou underline.
+     * @param c Caractere a verificar
+     * @return true se for letra ou underline
+     */
     private boolean isAlpha(char c) {
         return (c >= 'a' && c <= 'z') ||
                (c >= 'A' && c <= 'Z') ||
                c == '_';
     }
 
+    /**
+     * Verifica se o caractere é alfanumérico (letra ou dígito).
+     * @param c Caractere a verificar
+     * @return true se for alfanumérico
+     */
     private boolean isAlphaNumeric(char c) {
         return isAlpha(c) || isDigit(c);
     }
 
+    /**
+     * Verifica se chegou ao fim do texto.
+     * @return true se fim do texto
+     */
     private boolean isAtEnd() {
         return current >= source.length();
     }
 
+    /**
+     * Avança para o próximo caractere e retorna o atual.
+     * Atualiza a coluna.
+     * @return Caractere atual
+     */
     private char advance() {
         column++;
         return source.charAt(current++);
     }
 
+    /**
+     * Adiciona um token à lista, sem literal.
+     * @param type Tipo do token
+     */
     private void addToken(TokenType type) {
         addToken(type, null);
     }
 
+    /**
+     * Adiciona um token à lista, com literal opcional.
+     * @param type Tipo do token
+     * @param literal Valor literal do token (pode ser null)
+     */
     private void addToken(TokenType type, String literal) {
         String text = source.substring(start, current);
         if (literal == null) literal = text;
         tokens.add(new Token(type, literal, line, column - text.length()));
     }
 
+    /**
+     * Exibe mensagem de erro léxico no console, indicando linha e coluna.
+     * @param message Mensagem de erro
+     */
     private void error(String message) {
         System.err.println("[Erro Léxico] Linha " + line + ", Coluna " + column + ": " + message);
     }

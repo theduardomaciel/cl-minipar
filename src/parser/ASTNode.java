@@ -3,14 +3,13 @@ package parser;
 import java.util.List;
 
 /**
- * Classes para representar a Árvore Sintática Abstrata (AST)
- * Tema 2 - Compiladores 2025.1
- */
-
-/**
- * Classe base para todos os nós da AST
+ * Classe abstrata base para todos os nós da AST.
  */
 public abstract class ASTNode {
+    /**
+     * Retorna uma representação em string do nó da AST.
+     * @return String representando o nó.
+     */
     public abstract String toString();
 }
 
@@ -20,10 +19,18 @@ public abstract class ASTNode {
 class Program extends ASTNode {
     public List<ASTNode> statements;
 
+    /**
+     * Construtor do nó Program.
+     * @param statements Lista de nós AST representando as instruções do programa.
+     */
     public Program(List<ASTNode> statements) {
         this.statements = statements;
     }
 
+    /**
+     * Retorna uma representação em string do nó Program.
+     * @return String representando o programa.
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Program(\n");
@@ -44,6 +51,13 @@ class ClassDecl extends ASTNode {
     public List<VarDecl> attributes;
     public List<MethodDecl> methods;
 
+    /**
+     * Construtor do nó ClassDecl.
+     * @param name Nome da classe.
+     * @param superClass Nome da superclasse (pode ser null).
+     * @param attributes Lista de atributos da classe.
+     * @param methods Lista de métodos da classe.
+     */
     public ClassDecl(String name, String superClass, List<VarDecl> attributes, List<MethodDecl> methods) {
         this.name = name;
         this.superClass = superClass;
@@ -51,6 +65,10 @@ class ClassDecl extends ASTNode {
         this.methods = methods;
     }
 
+    /**
+     * Retorna uma representação em string do nó ClassDecl.
+     * @return String representando a declaração de classe.
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -74,6 +92,13 @@ class MethodDecl extends ASTNode {
     public List<Parameter> parameters;
     public List<ASTNode> body;
 
+    /**
+     * Construtor do nó MethodDecl.
+     * @param returnType Tipo de retorno do método.
+     * @param name Nome do método.
+     * @param parameters Lista de parâmetros do método.
+     * @param body Corpo do método (lista de nós AST).
+     */
     public MethodDecl(String returnType, String name, List<Parameter> parameters, List<ASTNode> body) {
         this.returnType = returnType;
         this.name = name;
@@ -81,6 +106,10 @@ class MethodDecl extends ASTNode {
         this.body = body;
     }
 
+    /**
+     * Retorna uma representação em string do nó MethodDecl.
+     * @return String representando a declaração de método.
+     */
     @Override
     public String toString() {
         return "MethodDecl(name=" + name + ", returnType=" + returnType +
@@ -95,11 +124,20 @@ class Parameter {
     public String name;
     public String type;
 
+    /**
+     * Construtor do nó Parameter.
+     * @param name Nome do parâmetro.
+     * @param type Tipo do parâmetro.
+     */
     public Parameter(String name, String type) {
         this.name = name;
         this.type = type;
     }
 
+    /**
+     * Retorna uma representação em string do parâmetro.
+     * @return String representando o parâmetro.
+     */
     @Override
     public String toString() {
         return name + ":" + type;
@@ -114,12 +152,22 @@ class VarDecl extends ASTNode {
     public String type;
     public ASTNode initializer;
 
+    /**
+     * Construtor do nó VarDecl.
+     * @param name Nome da variável.
+     * @param type Tipo da variável.
+     * @param initializer Inicializador da variável (pode ser null).
+     */
     public VarDecl(String name, String type, ASTNode initializer) {
         this.name = name;
         this.type = type;
         this.initializer = initializer;
     }
 
+    /**
+     * Retorna uma representação em string do nó VarDecl.
+     * @return String representando a declaração de variável.
+     */
     @Override
     public String toString() {
         return "VarDecl(name=" + name + ", type=" + type +
@@ -136,6 +184,13 @@ class FuncDecl extends ASTNode {
     public List<Parameter> parameters;
     public List<ASTNode> body;
 
+    /**
+     * Construtor do nó FuncDecl.
+     * @param name Nome da função.
+     * @param returnType Tipo de retorno da função.
+     * @param parameters Lista de parâmetros da função.
+     * @param body Corpo da função (lista de nós AST).
+     */
     public FuncDecl(String name, String returnType, List<Parameter> parameters, List<ASTNode> body) {
         this.name = name;
         this.returnType = returnType;
@@ -143,6 +198,10 @@ class FuncDecl extends ASTNode {
         this.body = body;
     }
 
+    /**
+     * Retorna uma representação em string do nó FuncDecl.
+     * @return String representando a declaração de função.
+     */
     @Override
     public String toString() {
         return "FuncDecl(name=" + name + ", returnType=" + returnType +
@@ -157,11 +216,20 @@ class NewInstance extends ASTNode {
     public String className;
     public List<ASTNode> arguments;
 
+    /**
+     * Construtor do nó NewInstance.
+     * @param className Nome da classe a ser instanciada.
+     * @param arguments Lista de argumentos para o construtor.
+     */
     public NewInstance(String className, List<ASTNode> arguments) {
         this.className = className;
         this.arguments = arguments;
     }
 
+    /**
+     * Retorna uma representação em string do nó NewInstance.
+     * @return String representando a instanciação de objeto.
+     */
     @Override
     public String toString() {
         return "NewInstance(class=" + className + ", args=" + arguments + ")";
@@ -176,12 +244,22 @@ class MethodCall extends ASTNode {
     public String methodName;
     public List<ASTNode> arguments;
 
+    /**
+     * Construtor do nó MethodCall.
+     * @param object Objeto alvo da chamada de método.
+     * @param methodName Nome do método.
+     * @param arguments Lista de argumentos do método.
+     */
     public MethodCall(ASTNode object, String methodName, List<ASTNode> arguments) {
         this.object = object;
         this.methodName = methodName;
         this.arguments = arguments;
     }
 
+    /**
+     * Retorna uma representação em string do nó MethodCall.
+     * @return String representando a chamada de método.
+     */
     @Override
     public String toString() {
         return "MethodCall(object=" + object + ", method=" + methodName + ", args=" + arguments + ")";
@@ -195,11 +273,20 @@ class Assignment extends ASTNode {
     public String varName;
     public ASTNode value;
 
+    /**
+     * Construtor do nó Assignment.
+     * @param varName Nome da variável.
+     * @param value Valor a ser atribuído.
+     */
     public Assignment(String varName, ASTNode value) {
         this.varName = varName;
         this.value = value;
     }
 
+    /**
+     * Retorna uma representação em string do nó Assignment.
+     * @return String representando a atribuição.
+     */
     @Override
     public String toString() {
         return "Assignment(" + varName + " = " + value + ")";
@@ -214,12 +301,22 @@ class IfStmt extends ASTNode {
     public List<ASTNode> thenBranch;
     public List<ASTNode> elseBranch;
 
+    /**
+     * Construtor do nó IfStmt.
+     * @param condition Condição do if.
+     * @param thenBranch Lista de nós AST do bloco then.
+     * @param elseBranch Lista de nós AST do bloco else (pode ser null).
+     */
     public IfStmt(ASTNode condition, List<ASTNode> thenBranch, List<ASTNode> elseBranch) {
         this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
     }
 
+    /**
+     * Retorna uma representação em string do nó IfStmt.
+     * @return String representando o if.
+     */
     @Override
     public String toString() {
         return "If(condition=" + condition + ", then=" + thenBranch +
@@ -234,11 +331,20 @@ class WhileStmt extends ASTNode {
     public ASTNode condition;
     public List<ASTNode> body;
 
+    /**
+     * Construtor do nó WhileStmt.
+     * @param condition Condição do while.
+     * @param body Corpo do while (lista de nós AST).
+     */
     public WhileStmt(ASTNode condition, List<ASTNode> body) {
         this.condition = condition;
         this.body = body;
     }
 
+    /**
+     * Retorna uma representação em string do nó WhileStmt.
+     * @return String representando o while.
+     */
     @Override
     public String toString() {
         return "While(condition=" + condition + ", body=" + body + ")";
@@ -251,10 +357,18 @@ class WhileStmt extends ASTNode {
 class ReturnStmt extends ASTNode {
     public ASTNode value;
 
+    /**
+     * Construtor do nó ReturnStmt.
+     * @param value Valor de retorno.
+     */
     public ReturnStmt(ASTNode value) {
         this.value = value;
     }
 
+    /**
+     * Retorna uma representação em string do nó ReturnStmt.
+     * @return String representando o retorno.
+     */
     @Override
     public String toString() {
         return "Return(" + value + ")";
@@ -269,12 +383,22 @@ class BinaryExpr extends ASTNode {
     public String operator;
     public ASTNode right;
 
+    /**
+     * Construtor do nó BinaryExpr.
+     * @param left Expressão à esquerda.
+     * @param operator Operador binário.
+     * @param right Expressão à direita.
+     */
     public BinaryExpr(ASTNode left, String operator, ASTNode right) {
         this.left = left;
         this.operator = operator;
         this.right = right;
     }
 
+    /**
+     * Retorna uma representação em string do nó BinaryExpr.
+     * @return String representando a expressão binária.
+     */
     @Override
     public String toString() {
         return "BinaryExpr(" + left + " " + operator + " " + right + ")";
@@ -288,11 +412,20 @@ class UnaryExpr extends ASTNode {
     public String operator;
     public ASTNode operand;
 
+    /**
+     * Construtor do nó UnaryExpr.
+     * @param operator Operador unário.
+     * @param operand Operando da expressão.
+     */
     public UnaryExpr(String operator, ASTNode operand) {
         this.operator = operator;
         this.operand = operand;
     }
 
+    /**
+     * Retorna uma representação em string do nó UnaryExpr.
+     * @return String representando a expressão unária.
+     */
     @Override
     public String toString() {
         return "UnaryExpr(" + operator + operand + ")";
@@ -305,10 +438,18 @@ class UnaryExpr extends ASTNode {
 class Literal extends ASTNode {
     public Object value;
 
+    /**
+     * Construtor do nó Literal.
+     * @param value Valor literal (número, string, boolean).
+     */
     public Literal(Object value) {
         this.value = value;
     }
 
+    /**
+     * Retorna uma representação em string do nó Literal.
+     * @return String representando o valor literal.
+     */
     @Override
     public String toString() {
         return "Literal(" + value + ")";
@@ -321,10 +462,18 @@ class Literal extends ASTNode {
 class Identifier extends ASTNode {
     public String name;
 
+    /**
+     * Construtor do nó Identifier.
+     * @param name Nome do identificador.
+     */
     public Identifier(String name) {
         this.name = name;
     }
 
+    /**
+     * Retorna uma representação em string do nó Identifier.
+     * @return String representando o identificador.
+     */
     @Override
     public String toString() {
         return "Identifier(" + name + ")";
@@ -338,11 +487,20 @@ class FunctionCall extends ASTNode {
     public String functionName;
     public List<ASTNode> arguments;
 
+    /**
+     * Construtor do nó FunctionCall.
+     * @param functionName Nome da função.
+     * @param arguments Lista de argumentos da função.
+     */
     public FunctionCall(String functionName, List<ASTNode> arguments) {
         this.functionName = functionName;
         this.arguments = arguments;
     }
 
+    /**
+     * Retorna uma representação em string do nó FunctionCall.
+     * @return String representando a chamada de função.
+     */
     @Override
     public String toString() {
         return "FunctionCall(" + functionName + ", args=" + arguments + ")";
@@ -355,10 +513,18 @@ class FunctionCall extends ASTNode {
 class SeqBlock extends ASTNode {
     public List<ASTNode> statements;
 
+    /**
+     * Construtor do nó SeqBlock.
+     * @param statements Lista de instruções do bloco sequencial.
+     */
     public SeqBlock(List<ASTNode> statements) {
         this.statements = statements;
     }
 
+    /**
+     * Retorna uma representação em string do nó SeqBlock.
+     * @return String representando o bloco SEQ.
+     */
     @Override
     public String toString() {
         return "SEQ" + statements;
@@ -371,10 +537,18 @@ class SeqBlock extends ASTNode {
 class ParBlock extends ASTNode {
     public List<ASTNode> statements;
 
+    /**
+     * Construtor do nó ParBlock.
+     * @param statements Lista de instruções do bloco paralelo.
+     */
     public ParBlock(List<ASTNode> statements) {
         this.statements = statements;
     }
 
+    /**
+     * Retorna uma representação em string do nó ParBlock.
+     * @return String representando o bloco PAR.
+     */
     @Override
     public String toString() {
         return "PAR" + statements;
@@ -385,6 +559,10 @@ class ParBlock extends ASTNode {
  * Break statement
  */
 class BreakStmt extends ASTNode {
+    /**
+     * Retorna uma representação em string do nó BreakStmt.
+     * @return String representando o break.
+     */
     @Override
     public String toString() {
         return "Break";
@@ -395,6 +573,10 @@ class BreakStmt extends ASTNode {
  * Continue statement
  */
 class ContinueStmt extends ASTNode {
+    /**
+     * Retorna uma representação em string do nó ContinueStmt.
+     * @return String representando o continue.
+     */
     @Override
     public String toString() {
         return "Continue";
