@@ -1,0 +1,32 @@
+# Exemplo 4: Funções e Variáveis Simples
+# Tema 2 - Compiladores 2025.1
+
+var a: number = 10
+var b: number = 20
+var resultado: number
+
+func soma(x: number, y: number) -> number {
+    return x + y
+}
+
+func fatorial(n: number) -> number {
+    if (n <= 1) {
+        return 1
+    } else {
+        return n * fatorial(n - 1)
+    }
+}
+
+resultado = soma(a, b)
+print("Soma: ", resultado)
+
+var fat: number = fatorial(5)
+print("Fatorial de 5: ", fat)
+
+# Teste de estruturas de controle
+var i: number = 0
+while (i < 5) {
+    print("Iteração: ", i)
+    i = i + 1
+}
+

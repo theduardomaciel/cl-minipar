@@ -1,0 +1,201 @@
+# Gramática BNF da Linguagem MiniPar OOP - Tema 2
+# Compiladores 2025.1 - Atividade 2
+
+## PROGRAMA
+<programa> ::= { <declaracao> }
+
+<declaracao> ::= <declaracao_classe>
+               | <declaracao_funcao>
+               | <declaracao_variavel>
+               | <comando>
+
+## ORIENTAÇÃO A OBJETOS
+
+<declaracao_classe> ::= "class" <identificador> [ "extends" <identificador> ]
+                        "{" { <membro_classe> } "}"
+
+<membro_classe> ::= <declaracao_variavel>
+                  | <declaracao_metodo>
+
+<declaracao_metodo> ::= <tipo_retorno> <identificador> "(" <parametros> ")"
+                        "{" { <comando> } "}"
+
+<instanciacao> ::= "new" <identificador> "(" [ <argumentos> ] ")"
+
+<chamada_metodo> ::= <expressao> "." <identificador> "(" [ <argumentos> ] ")"
+
+## FUNÇÕES
+
+<declaracao_funcao> ::= "func" <identificador> "(" <parametros> ")"
+                        "->" <tipo> "{" { <comando> } "}"
+
+<parametros> ::= [ <parametro> { "," <parametro> } ]
+
+<parametro> ::= <identificador> ":" <tipo>
+
+<argumentos> ::= <expressao> { "," <expressao> }
+
+## VARIÁVEIS
+
+<declaracao_variavel> ::= "var" <identificador> ":" <tipo> [ "=" <expressao> ]
+
+<atribuicao> ::= <identificador> "=" <expressao>
+
+## COMANDOS
+
+<comando> ::= <declaracao_variavel>
+           | <atribuicao>
+           | <comando_if>
+           | <comando_while>
+           | <comando_for>
+           | <comando_return>
+           | <comando_break>
+           | <comando_continue>
+           | <bloco_seq>
+           | <bloco_par>
+           | <chamada_metodo>
+           | <expressao>
+
+<comando_if> ::= "if" "(" <expressao> ")" "{" { <comando> } "}"
+                 [ "else" "{" { <comando> } "}" ]
+
+<comando_while> ::= "while" "(" <expressao> ")" "{" { <comando> } "}"
+
+<comando_for> ::= "for" "(" <declaracao_variavel> "in" <expressao> ")"
+                  "{" { <comando> } "}"
+
+<comando_return> ::= "return" [ <expressao> ]
+
+<comando_break> ::= "break"
+
+<comando_continue> ::= "continue"
+
+<bloco_seq> ::= "seq" "{" { <comando> } "}"
+
+<bloco_par> ::= "par" "{" { <comando> } "}"
+
+## EXPRESSÕES
+
+<expressao> ::= <atribuicao>
+              | <expr_logica_ou>
+
+<expr_logica_ou> ::= <expr_logica_e> { "||" <expr_logica_e> }
+
+<expr_logica_e> ::= <expr_igualdade> { "&&" <expr_igualdade> }
+
+<expr_igualdade> ::= <expr_relacional> { ( "==" | "!=" ) <expr_relacional> }
+
+<expr_relacional> ::= <expr_aditiva> { ( ">" | ">=" | "<" | "<=" ) <expr_aditiva> }
+
+<expr_aditiva> ::= <expr_multiplicativa> { ( "+" | "-" ) <expr_multiplicativa> }
+
+<expr_multiplicativa> ::= <expr_unaria> { ( "*" | "/" | "%" ) <expr_unaria> }
+
+<expr_unaria> ::= ( "!" | "-" ) <expr_unaria>
+                | <expr_chamada>
+
+<expr_chamada> ::= <expr_primaria> { "(" [ <argumentos> ] ")" | "." <identificador> }
+
+<expr_primaria> ::= <numero>
+                  | <string>
+                  | "true"
+                  | "false"
+                  | <identificador>
+                  | <instanciacao>
+                  | "(" <expressao> ")"
+
+## TIPOS
+
+<tipo> ::= "number"
+         | "string"
+         | "bool"
+         | "void"
+         | "list"
+         | "dict"
+         | <identificador>  # tipo customizado (classe)
+
+<tipo_retorno> ::= <tipo>
+
+## LÉXICO
+
+<identificador> ::= <letra> { <letra> | <digito> | "_" }
+
+<numero> ::= <digito> { <digito> } [ "." <digito> { <digito> } ]
+
+<string> ::= '"' { <caractere> } '"'
+
+<letra> ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z"
+
+<digito> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<caractere> ::= qualquer caractere ASCII exceto '"'
+
+## COMENTÁRIOS
+
+<comentario_linha> ::= "#" { <qualquer_caractere> } <nova_linha>
+
+<comentario_bloco> ::= "/*" { <qualquer_caractere> } "*/"
+
+## PALAVRAS-RESERVADAS
+
+class, extends, new, this, super,
+func, var, if, else, while, for, return, break, continue,
+seq, par, c_channel, s_channel, in,
+number, string, bool, void, list, dict,
+true, false
+
+## OPERADORES
+
+Aritméticos: +, -, *, /, %
+Relacionais: ==, !=, <, <=, >, >=
+Lógicos: &&, ||, !
+Atribuição: =
+Acesso: .
+Outros: ->, :, ,, ;, (, ), {, }, [, ]
+# Exemplo 1: Programa MiniPar com Orientação a Objetos
+# Tema 2 - Compiladores 2025.1
+
+class Pessoa {
+    var nome: string
+    var idade: number
+
+    void setNome(n: string) {
+        nome = n
+    }
+
+    string getNome() {
+        return nome
+    }
+
+    void setIdade(i: number) {
+        idade = i
+    }
+
+    number getIdade() {
+        return idade
+    }
+}
+
+class Estudante extends Pessoa {
+    var matricula: string
+    var curso: string
+
+    void setMatricula(m: string) {
+        matricula = m
+    }
+
+    string getMatricula() {
+        return matricula
+    }
+}
+
+# Instanciação de objetos
+var estudante1: Estudante = new Estudante()
+estudante1.setNome("Eduardo")
+estudante1.setIdade(20)
+estudante1.setMatricula("202301234")
+
+print("Nome: ", estudante1.getNome())
+print("Idade: ", estudante1.getIdade())
+print("Matricula: ", estudante1.getMatricula())
+
