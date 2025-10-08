@@ -54,21 +54,17 @@ public class Parser {
      * @throws ParseException em caso de erro sintático.
      */
     private ASTNode declaration() {
-        try {
-            if (match(TokenType.CLASS)) {
-                return classDeclaration();
-            }
-            if (match(TokenType.FUNC)) {
-                return functionDeclaration();
-            }
-            if (match(TokenType.VAR)) {
-                return varDeclaration();
-            }
-
-            return statement();
-        } catch (ParseException e) {
-            throw e;
+        if (match(TokenType.CLASS)) {
+            return classDeclaration();
         }
+        if (match(TokenType.FUNC)) {
+            return functionDeclaration();
+        }
+        if (match(TokenType.VAR)) {
+            return varDeclaration();
+        }
+
+        return statement();
     }
 
     /**
@@ -97,7 +93,7 @@ public class Parser {
                 methods.add(methodDeclaration());
             } else if (match(TokenType.VAR)) {
                 // É um atributo
-                attributes.add((VarDecl) varDeclaration());
+                attributes.add(varDeclaration());
             } else {
                 throw error(peek(), "Esperado declaração de método ou atributo");
             }
@@ -470,7 +466,7 @@ public class Parser {
                     consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos");
                     expr = new MethodCall(expr, name.lexeme(), arguments);
                 } else {
-                    // É acesso a propriedade - por enquanto tratamos como identifier
+                    // É acesso à propriedade - por enquanto tratamos como identifier
                     expr = new Identifier(name.lexeme());
                 }
             } else {

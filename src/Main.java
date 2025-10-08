@@ -139,6 +139,7 @@ public class Main {
             switch (className) {
                 case "Program" -> {
                     System.out.println(indent + "Program {");
+                    @SuppressWarnings("unchecked")
                     List<ASTNode> statements = (List<ASTNode>) node.getClass().getField("statements").get(node);
                     for (ASTNode stmt : statements) {
                         printAST(stmt, depth + 1);
@@ -210,7 +211,7 @@ public class Main {
                     ASTNode condition = (ASTNode) node.getClass().getField("condition").get(node);
                     System.out.println(indent + "WhileStmt { condition: " + condition + " }");
                 }
-                default -> System.out.println(indent + node.toString());
+                default -> System.out.println(indent + node);
             }
         } catch (Exception e) {
             // Se não conseguir acessar os campos, usa toString padrão
@@ -281,4 +282,3 @@ public class Main {
         run(example3, "Exemplo 3");
     }
 }
-
