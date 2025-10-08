@@ -8,18 +8,10 @@ import java.util.List;
  */
 
 /**
- * Interface Visitor para implementar diferentes tipos de processamento da AST
- */
-interface ASTVisitor<T> {
-    T visit(ASTNode node, int depth);
-}
-
-/**
  * Classe base para todos os nós da AST
  */
 public abstract class ASTNode {
     public abstract String toString();
-    public abstract <T> T accept(ASTVisitor<T> visitor, int depth);
 }
 
 /**
@@ -30,11 +22,6 @@ class Program extends ASTNode {
 
     public Program(List<ASTNode> statements) {
         this.statements = statements;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -65,11 +52,6 @@ class ClassDecl extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("ClassDecl(name=").append(name);
@@ -97,11 +79,6 @@ class MethodDecl extends ASTNode {
         this.name = name;
         this.parameters = parameters;
         this.body = body;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -144,11 +121,6 @@ class VarDecl extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "VarDecl(name=" + name + ", type=" + type +
                (initializer != null ? ", init=" + initializer : "") + ")";
@@ -172,11 +144,6 @@ class FuncDecl extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "FuncDecl(name=" + name + ", returnType=" + returnType +
                ", params=" + parameters + ")";
@@ -193,11 +160,6 @@ class NewInstance extends ASTNode {
     public NewInstance(String className, List<ASTNode> arguments) {
         this.className = className;
         this.arguments = arguments;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -221,11 +183,6 @@ class MethodCall extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "MethodCall(object=" + object + ", method=" + methodName + ", args=" + arguments + ")";
     }
@@ -241,11 +198,6 @@ class Assignment extends ASTNode {
     public Assignment(String varName, ASTNode value) {
         this.varName = varName;
         this.value = value;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -269,11 +221,6 @@ class IfStmt extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "If(condition=" + condition + ", then=" + thenBranch +
                (elseBranch != null ? ", else=" + elseBranch : "") + ")";
@@ -293,11 +240,6 @@ class WhileStmt extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "While(condition=" + condition + ", body=" + body + ")";
     }
@@ -311,11 +253,6 @@ class ReturnStmt extends ASTNode {
 
     public ReturnStmt(ASTNode value) {
         this.value = value;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -339,11 +276,6 @@ class BinaryExpr extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "BinaryExpr(" + left + " " + operator + " " + right + ")";
     }
@@ -359,11 +291,6 @@ class UnaryExpr extends ASTNode {
     public UnaryExpr(String operator, ASTNode operand) {
         this.operator = operator;
         this.operand = operand;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -383,11 +310,6 @@ class Literal extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "Literal(" + value + ")";
     }
@@ -401,11 +323,6 @@ class Identifier extends ASTNode {
 
     public Identifier(String name) {
         this.name = name;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -427,11 +344,6 @@ class FunctionCall extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "FunctionCall(" + functionName + ", args=" + arguments + ")";
     }
@@ -445,11 +357,6 @@ class SeqBlock extends ASTNode {
 
     public SeqBlock(List<ASTNode> statements) {
         this.statements = statements;
-    }
-
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
     }
 
     @Override
@@ -469,11 +376,6 @@ class ParBlock extends ASTNode {
     }
 
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "PAR" + statements;
     }
@@ -484,11 +386,6 @@ class ParBlock extends ASTNode {
  */
 class BreakStmt extends ASTNode {
     @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
-    @Override
     public String toString() {
         return "Break";
     }
@@ -498,11 +395,6 @@ class BreakStmt extends ASTNode {
  * Continue statement
  */
 class ContinueStmt extends ASTNode {
-    @Override
-    public <T> T accept(ASTVisitor<T> visitor, int depth) {
-        return visitor.visit(this, depth);
-    }
-
     @Override
     public String toString() {
         return "Continue";
