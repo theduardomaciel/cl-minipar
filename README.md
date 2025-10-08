@@ -8,12 +8,13 @@
 
 ## 🚶 Sobre o Projeto
 
-Um **interpretador orientado a objetos** para a linguagem educacional **MiniPar 2025.1**, desenvolvido como requisito parcial da disciplina de **Compiladores (UFAL, 2025.1)**, ministrada pelo professor **Arturo Hernández Domínguez**.
+Um **interpretador orientado a objetos** para a linguagem educacional **MiniPar 2025.1**, desenvolvido como requisito parcial da disciplina de **Compiladores (UFAL, 2025.1)**, ministrada pelo professor **Arturo Hernández Domínguez**.  
 
-Esta entrega corresponde à **Atividade 2 – Front-End**, abrangendo a implementação e demonstração do **Analisador Léxico (Lexer)** e do **Analisador Sintático (Parser)** do Tema 2.
+O tema escolhido dentre as opções propostas foi o **Tema 2 – MiniPar Orientado a Objetos**.
 
 > [!NOTE]
-> Nesta fase, o foco está exclusivamente na **análise léxica e sintática** (sem semântica ou execução).  
+> Esta atual entrega corresponde à **Atividade 2 – Front-End**, abrangendo a implementação e demonstração do **Analisador Léxico (Lexer)** e do **Analisador Sintático (Parser)** do Tema 2.  
+> Assim sendo, nesta fase, o foco está exclusivamente na **análise léxica e sintática** (sem semântica ou execução).  
 > As próximas atividades abordarão a **interpretação orientada a objetos completa** da linguagem MiniPar 2025.1.
 
 ---
@@ -95,7 +96,7 @@ Token(EOF, "", line=1)
 
 ```bash
 git clone https://github.com/theduardomaciel/cl-minipar.git
-cd minipar-2025
+cd cl-minipar
 ```
 
 ### 2. Compilar o projeto
