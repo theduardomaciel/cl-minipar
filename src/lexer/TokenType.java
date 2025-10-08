@@ -1,3 +1,5 @@
+package lexer;
+
 /**
  * Enumeração dos tipos de tokens da linguagem MiniPar OOP
  * Tema 2 - Compiladores 2025.1

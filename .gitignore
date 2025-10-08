@@ -4,6 +4,15 @@ out/
 !**/src/test/**/out/
 .kotlin
 
+##############################
+## IntelliJ
+##############################
+.idea/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
+
 ### Eclipse ###
 .apt_generated
 .classpath
@@ -28,3 +37,17 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+minipar
+
+##############################
+## Java
+##############################
+.mtj.tmp/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*

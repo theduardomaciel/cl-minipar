@@ -1,10 +1,13 @@
+package parser;
+
+import lexer.Token;
+import lexer.TokenType;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Analisador Sintático (Parser) para a linguagem MiniPar OOP
  * Tema 2 - Compiladores 2025.1
- *
  * Parser Descendente Recursivo que constrói uma Árvore Sintática Abstrata (AST)
  * com suporte a Programação Orientada a Objetos
  */
@@ -603,4 +606,3 @@ class ParseException extends RuntimeException {
         super(message);
     }
 }
-

@@ -1,3 +1,9 @@
+import lexer.Lexer;
+import lexer.Token;
+import lexer.TokenType;
+import parser.Parser;
+import parser.ASTNode;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -107,7 +113,7 @@ public class Main {
 
         try {
             Parser parser = new Parser(tokens);
-            Program ast = parser.parse();
+            ASTNode ast = parser.parse();
 
             System.out.println("✅ Análise sintática concluída com sucesso!");
             System.out.println("\n📊 Árvore Sintática Abstrata (AST):");
@@ -127,65 +133,78 @@ public class Main {
      */
     private static void printAST(ASTNode node, int depth) {
         String indent = "  ".repeat(depth);
+        String className = node.getClass().getSimpleName();
 
-        if (node instanceof Program) {
-            Program prog = (Program) node;
-            System.out.println(indent + "Program {");
-            for (ASTNode stmt : prog.statements) {
-                printAST(stmt, depth + 1);
-            }
-            System.out.println(indent + "}");
-        } else if (node instanceof ClassDecl) {
-            ClassDecl classDecl = (ClassDecl) node;
-            System.out.println(indent + "ClassDecl {");
-            System.out.println(indent + "  name: " + classDecl.name);
-            if (classDecl.superClass != null) {
-                System.out.println(indent + "  extends: " + classDecl.superClass);
-            }
-            if (!classDecl.attributes.isEmpty()) {
-                System.out.println(indent + "  attributes: [");
-                for (VarDecl attr : classDecl.attributes) {
-                    printAST(attr, depth + 2);
+        try {
+            if (className.equals("Program")) {
+                System.out.println(indent + "Program {");
+                List<ASTNode> statements = (List<ASTNode>) node.getClass().getField("statements").get(node);
+                for (ASTNode stmt : statements) {
+                    printAST(stmt, depth + 1);
                 }
-                System.out.println(indent + "  ]");
-            }
-            if (!classDecl.methods.isEmpty()) {
-                System.out.println(indent + "  methods: [");
-                for (MethodDecl method : classDecl.methods) {
-                    printAST(method, depth + 2);
+                System.out.println(indent + "}");
+            } else if (className.equals("ClassDecl")) {
+                System.out.println(indent + "ClassDecl {");
+                String name = (String) node.getClass().getField("name").get(node);
+                String superClass = (String) node.getClass().getField("superClass").get(node);
+                System.out.println(indent + "  name: " + name);
+                if (superClass != null) {
+                    System.out.println(indent + "  extends: " + superClass);
                 }
-                System.out.println(indent + "  ]");
+                List<?> attributes = (List<?>) node.getClass().getField("attributes").get(node);
+                List<?> methods = (List<?>) node.getClass().getField("methods").get(node);
+                if (!attributes.isEmpty()) {
+                    System.out.println(indent + "  attributes: [");
+                    for (Object attr : attributes) {
+                        printAST((ASTNode) attr, depth + 2);
+                    }
+                    System.out.println(indent + "  ]");
+                }
+                if (!methods.isEmpty()) {
+                    System.out.println(indent + "  methods: [");
+                    for (Object method : methods) {
+                        printAST((ASTNode) method, depth + 2);
+                    }
+                    System.out.println(indent + "  ]");
+                }
+                System.out.println(indent + "}");
+            } else if (className.equals("MethodDecl")) {
+                String name = (String) node.getClass().getField("name").get(node);
+                String returnType = (String) node.getClass().getField("returnType").get(node);
+                System.out.println(indent + "MethodDecl { name: " + name +
+                                 ", returnType: " + returnType + " }");
+            } else if (className.equals("FuncDecl")) {
+                String name = (String) node.getClass().getField("name").get(node);
+                String returnType = (String) node.getClass().getField("returnType").get(node);
+                System.out.println(indent + "FuncDecl { name: " + name +
+                                 ", returnType: " + returnType + " }");
+            } else if (className.equals("VarDecl")) {
+                String name = (String) node.getClass().getField("name").get(node);
+                String type = (String) node.getClass().getField("type").get(node);
+                ASTNode initializer = (ASTNode) node.getClass().getField("initializer").get(node);
+                System.out.print(indent + "VarDecl { name: " + name +
+                               ", type: " + type);
+                if (initializer != null) {
+                    System.out.print(", init: " + initializer);
+                }
+                System.out.println(" }");
+            } else if (className.equals("NewInstance")) {
+                String clsName = (String) node.getClass().getField("className").get(node);
+                System.out.println(indent + "NewInstance { class: " + clsName + " }");
+            } else if (className.equals("MethodCall")) {
+                String methodName = (String) node.getClass().getField("methodName").get(node);
+                System.out.println(indent + "MethodCall { method: " + methodName + " }");
+            } else if (className.equals("IfStmt")) {
+                ASTNode condition = (ASTNode) node.getClass().getField("condition").get(node);
+                System.out.println(indent + "IfStmt { condition: " + condition + " }");
+            } else if (className.equals("WhileStmt")) {
+                ASTNode condition = (ASTNode) node.getClass().getField("condition").get(node);
+                System.out.println(indent + "WhileStmt { condition: " + condition + " }");
+            } else {
+                System.out.println(indent + node.toString());
             }
-            System.out.println(indent + "}");
-        } else if (node instanceof MethodDecl) {
-            MethodDecl method = (MethodDecl) node;
-            System.out.println(indent + "MethodDecl { name: " + method.name +
-                             ", returnType: " + method.returnType + " }");
-        } else if (node instanceof FuncDecl) {
-            FuncDecl func = (FuncDecl) node;
-            System.out.println(indent + "FuncDecl { name: " + func.name +
-                             ", returnType: " + func.returnType + " }");
-        } else if (node instanceof VarDecl) {
-            VarDecl var = (VarDecl) node;
-            System.out.print(indent + "VarDecl { name: " + var.name +
-                           ", type: " + var.type);
-            if (var.initializer != null) {
-                System.out.print(", init: " + var.initializer);
-            }
-            System.out.println(" }");
-        } else if (node instanceof NewInstance) {
-            NewInstance newInst = (NewInstance) node;
-            System.out.println(indent + "NewInstance { class: " + newInst.className + " }");
-        } else if (node instanceof MethodCall) {
-            MethodCall call = (MethodCall) node;
-            System.out.println(indent + "MethodCall { method: " + call.methodName + " }");
-        } else if (node instanceof IfStmt) {
-            IfStmt ifStmt = (IfStmt) node;
-            System.out.println(indent + "IfStmt { condition: " + ifStmt.condition + " }");
-        } else if (node instanceof WhileStmt) {
-            WhileStmt whileStmt = (WhileStmt) node;
-            System.out.println(indent + "WhileStmt { condition: " + whileStmt.condition + " }");
-        } else {
+        } catch (Exception e) {
+            // Se não conseguir acessar os campos, usa toString padrão
             System.out.println(indent + node.toString());
         }
     }
@@ -215,12 +234,12 @@ public class Main {
             class Pessoa {
                 var nome: string
                 var idade: number
-                
+                \s
                 void inicializar(n: string, i: number) {
                     nome = n
                     idade = i
                 }
-                
+                \s
                 string getNome() {
                     return nome
                 }
@@ -236,7 +255,7 @@ public class Main {
         String example3 = """
             class Animal {
                 var nome: string
-                
+                \s
                 void emitirSom() {
                     print("Som genérico")
                 }

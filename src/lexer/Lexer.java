@@ -1,3 +1,5 @@
+package lexer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +9,7 @@ import java.util.Map;
  * Analisador Léxico (Lexer) para a linguagem MiniPar OOP
  * Tema 2 - Compiladores 2025.1
  *
- * Responsável por transformar o código fonte em uma sequência de tokens
+ * Responsável por transformar o código-fonte em uma sequência de tokens
  */
 public class Lexer {
     private final String source;
@@ -303,4 +305,3 @@ public class Lexer {
         System.err.println("[Erro Léxico] Linha " + line + ", Coluna " + column + ": " + message);
     }
 }
-

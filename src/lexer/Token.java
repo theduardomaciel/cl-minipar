@@ -1,3 +1,5 @@
+package lexer;
+
 /**
  * Classe Token - Representa um token reconhecido pelo Lexer
  * Tema 2 - Compiladores 2025.1
@@ -37,4 +39,3 @@ public class Token {
                            type, lexeme, line, column);
     }
 }
-

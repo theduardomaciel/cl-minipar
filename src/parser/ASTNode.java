@@ -1,14 +1,16 @@
+package parser;
+
+import java.util.List;
+
 /**
  * Classes para representar a Árvore Sintática Abstrata (AST)
  * Tema 2 - Compiladores 2025.1
  */
 
-import java.util.List;
-
 /**
  * Classe base para todos os nós da AST
  */
-abstract class ASTNode {
+public abstract class ASTNode {
     public abstract String toString();
 }
 
@@ -16,7 +18,7 @@ abstract class ASTNode {
  * Programa completo
  */
 class Program extends ASTNode {
-    List<ASTNode> statements;
+    public List<ASTNode> statements;
 
     public Program(List<ASTNode> statements) {
         this.statements = statements;
@@ -37,10 +39,10 @@ class Program extends ASTNode {
  * Declaração de classe
  */
 class ClassDecl extends ASTNode {
-    String name;
-    String superClass;
-    List<VarDecl> attributes;
-    List<MethodDecl> methods;
+    public String name;
+    public String superClass;
+    public List<VarDecl> attributes;
+    public List<MethodDecl> methods;
 
     public ClassDecl(String name, String superClass, List<VarDecl> attributes, List<MethodDecl> methods) {
         this.name = name;
@@ -67,10 +69,10 @@ class ClassDecl extends ASTNode {
  * Declaração de método
  */
 class MethodDecl extends ASTNode {
-    String returnType;
-    String name;
-    List<Parameter> parameters;
-    List<ASTNode> body;
+    public String returnType;
+    public String name;
+    public List<Parameter> parameters;
+    public List<ASTNode> body;
 
     public MethodDecl(String returnType, String name, List<Parameter> parameters, List<ASTNode> body) {
         this.returnType = returnType;
@@ -90,8 +92,8 @@ class MethodDecl extends ASTNode {
  * Parâmetro de método/função
  */
 class Parameter {
-    String name;
-    String type;
+    public String name;
+    public String type;
 
     public Parameter(String name, String type) {
         this.name = name;
@@ -108,9 +110,9 @@ class Parameter {
  * Declaração de variável
  */
 class VarDecl extends ASTNode {
-    String name;
-    String type;
-    ASTNode initializer;
+    public String name;
+    public String type;
+    public ASTNode initializer;
 
     public VarDecl(String name, String type, ASTNode initializer) {
         this.name = name;
@@ -129,10 +131,10 @@ class VarDecl extends ASTNode {
  * Declaração de função
  */
 class FuncDecl extends ASTNode {
-    String name;
-    String returnType;
-    List<Parameter> parameters;
-    List<ASTNode> body;
+    public String name;
+    public String returnType;
+    public List<Parameter> parameters;
+    public List<ASTNode> body;
 
     public FuncDecl(String name, String returnType, List<Parameter> parameters, List<ASTNode> body) {
         this.name = name;
@@ -152,8 +154,8 @@ class FuncDecl extends ASTNode {
  * Instanciação de objeto
  */
 class NewInstance extends ASTNode {
-    String className;
-    List<ASTNode> arguments;
+    public String className;
+    public List<ASTNode> arguments;
 
     public NewInstance(String className, List<ASTNode> arguments) {
         this.className = className;
@@ -170,9 +172,9 @@ class NewInstance extends ASTNode {
  * Chamada de método
  */
 class MethodCall extends ASTNode {
-    ASTNode object;
-    String methodName;
-    List<ASTNode> arguments;
+    public ASTNode object;
+    public String methodName;
+    public List<ASTNode> arguments;
 
     public MethodCall(ASTNode object, String methodName, List<ASTNode> arguments) {
         this.object = object;
@@ -190,8 +192,8 @@ class MethodCall extends ASTNode {
  * Atribuição
  */
 class Assignment extends ASTNode {
-    String varName;
-    ASTNode value;
+    public String varName;
+    public ASTNode value;
 
     public Assignment(String varName, ASTNode value) {
         this.varName = varName;
@@ -208,9 +210,9 @@ class Assignment extends ASTNode {
  * If statement
  */
 class IfStmt extends ASTNode {
-    ASTNode condition;
-    List<ASTNode> thenBranch;
-    List<ASTNode> elseBranch;
+    public ASTNode condition;
+    public List<ASTNode> thenBranch;
+    public List<ASTNode> elseBranch;
 
     public IfStmt(ASTNode condition, List<ASTNode> thenBranch, List<ASTNode> elseBranch) {
         this.condition = condition;
@@ -229,8 +231,8 @@ class IfStmt extends ASTNode {
  * While statement
  */
 class WhileStmt extends ASTNode {
-    ASTNode condition;
-    List<ASTNode> body;
+    public ASTNode condition;
+    public List<ASTNode> body;
 
     public WhileStmt(ASTNode condition, List<ASTNode> body) {
         this.condition = condition;
@@ -247,7 +249,7 @@ class WhileStmt extends ASTNode {
  * Return statement
  */
 class ReturnStmt extends ASTNode {
-    ASTNode value;
+    public ASTNode value;
 
     public ReturnStmt(ASTNode value) {
         this.value = value;
@@ -263,9 +265,9 @@ class ReturnStmt extends ASTNode {
  * Expressões binárias
  */
 class BinaryExpr extends ASTNode {
-    ASTNode left;
-    String operator;
-    ASTNode right;
+    public ASTNode left;
+    public String operator;
+    public ASTNode right;
 
     public BinaryExpr(ASTNode left, String operator, ASTNode right) {
         this.left = left;
@@ -283,8 +285,8 @@ class BinaryExpr extends ASTNode {
  * Expressões unárias
  */
 class UnaryExpr extends ASTNode {
-    String operator;
-    ASTNode operand;
+    public String operator;
+    public ASTNode operand;
 
     public UnaryExpr(String operator, ASTNode operand) {
         this.operator = operator;
@@ -301,7 +303,7 @@ class UnaryExpr extends ASTNode {
  * Literal (número, string, boolean)
  */
 class Literal extends ASTNode {
-    Object value;
+    public Object value;
 
     public Literal(Object value) {
         this.value = value;
@@ -317,7 +319,7 @@ class Literal extends ASTNode {
  * Identificador (variável)
  */
 class Identifier extends ASTNode {
-    String name;
+    public String name;
 
     public Identifier(String name) {
         this.name = name;
@@ -333,8 +335,8 @@ class Identifier extends ASTNode {
  * Chamada de função
  */
 class FunctionCall extends ASTNode {
-    String functionName;
-    List<ASTNode> arguments;
+    public String functionName;
+    public List<ASTNode> arguments;
 
     public FunctionCall(String functionName, List<ASTNode> arguments) {
         this.functionName = functionName;
@@ -351,7 +353,7 @@ class FunctionCall extends ASTNode {
  * Bloco SEQ
  */
 class SeqBlock extends ASTNode {
-    List<ASTNode> statements;
+    public List<ASTNode> statements;
 
     public SeqBlock(List<ASTNode> statements) {
         this.statements = statements;
@@ -367,7 +369,7 @@ class SeqBlock extends ASTNode {
  * Bloco PAR
  */
 class ParBlock extends ASTNode {
-    List<ASTNode> statements;
+    public List<ASTNode> statements;
 
     public ParBlock(List<ASTNode> statements) {
         this.statements = statements;
@@ -398,4 +400,3 @@ class ContinueStmt extends ASTNode {
         return "Continue";
     }
 }
-
