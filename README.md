@@ -13,8 +13,7 @@ Um **interpretador orientado a objetos** para a linguagem educacional **MiniPar 
 O tema escolhido dentre as opções propostas foi o **Tema 2 – MiniPar Orientado a Objetos**.
 
 > [!NOTE]
-> Esta atual entrega corresponde à **Atividade 2 – Front-End**, abrangendo a implementação e demonstração do **Analisador Léxico (Lexer)** e do **Analisador Sintático (Parser)** do Tema 2.  
-> Assim sendo, nesta fase, o foco está exclusivamente na **análise léxica e sintática** (sem semântica ou execução).  
+> Esta atual entrega corresponde à **Atividade 2 – Front-End**, abrangendo a implementação e demonstração do **Analisador Léxico** e do **Analisador Sintático** do Tema 2.  
 > As próximas atividades abordarão a **interpretação orientada a objetos completa** da linguagem MiniPar 2025.1.
 
 ---
