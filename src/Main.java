@@ -129,7 +129,9 @@ public class Main {
     }
 
     /**
-     * Imprime a AST de forma hierárquica
+     * Imprime a Árvore Sintática Abstrata (AST) de forma hierárquica.
+     * @param node Nó raiz da AST a ser impresso.
+     * @param depth Nível de profundidade para indentação visual.
      */
     private static void printAST(ASTNode node, int depth) {
         String indent = "  ".repeat(depth);
