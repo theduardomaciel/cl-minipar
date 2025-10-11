@@ -1,0 +1,53 @@
+# Programa cliente servidor de uma calculadora aritmética simples
+
+# Declaração do canal de comunicação entre cliente e servidor
+c_channel calculadora computador_1 computador_2
+
+class Calculadora {
+    func calcular(op: string, v1: number, v2: number) -> number {
+        if (op == "+") {
+            return v1 + v2
+        } else if (op == "-") {
+            return v1 - v2
+        } else if (op == "*") {
+            return v1 * v2
+        } else if (op == "/") {
+            return v1 / v2
+        } else {
+            print("Operação inválida")
+            return 0
+        }
+    }
+}
+
+class Cliente {
+    func solicitar() -> void {
+        print("Opções: +, -, *, /")
+        var op: string = sys.stdin.readline()
+        var v1: number = sys.stdin.readline()
+        var v2: number = sys.stdin.readline()
+        var resultado: number = 0
+        calculadora.send(op, v1, v2, resultado)
+        print("Resultado: " + resultado)
+    }
+}
+
+class Servidor {
+    func atender() -> void {
+        var op: string
+        var v1: number
+        var v2: number
+        var resultado: number
+        calculadora.receive(op, v1, v2, resultado)
+        var calc: Calculadora = new Calculadora()
+        resultado = calc.calcular(op, v1, v2)
+        calculadora.send(op, v1, v2, resultado)
+    }
+}
+
+SEQ {
+    var cliente: Cliente = new Cliente()
+    var servidor: Servidor = new Servidor()
+    cliente.solicitar()
+    servidor.atender()
+}

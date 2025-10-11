@@ -1,0 +1,160 @@
+# Sistema de recomendação com rede neural para e-commerce
+
+func relu(x: list) -> list {
+    var resultado: list = []
+    for (var i: number = 0 in x.length) {
+        if (x[i] > 0) {
+            resultado.append(x[i])
+        } else {
+            resultado.append(0)
+        }
+    }
+    return resultado
+}
+
+func sigmoid(x: list) -> list {
+    var resultado: list = []
+    for (var i: number = 0 in x.length) {
+        resultado.append(1 / (1 + math.exp(-x[i])))
+    }
+    return resultado
+}
+
+class Produto {
+    var nome: string
+    func init(nome: string) -> void {
+        self.nome = nome
+    }
+}
+
+class Categoria {
+    var nome: string
+    var produtos: list
+    func init(nome: string, produtos: list) -> void {
+        self.nome = nome
+        self.produtos = []
+        for (var i: number = 0 in produtos.length) {
+            self.produtos.append(new Produto(produtos[i]))
+        }
+    }
+}
+
+class Usuario {
+    var historico_compras: list
+    func init(historico_compras: list) -> void {
+        self.historico_compras = historico_compras
+    }
+    func codificar_historico(todos_produtos: list) -> list {
+        var codificacao: list = []
+        for (var i: number = 0 in todos_produtos.length) {
+            if (self.historico_compras.contains(todos_produtos[i])) {
+                codificacao.append(1)
+            } else {
+                codificacao.append(0)
+            }
+        }
+        return codificacao
+    }
+}
+
+class RedeNeural {
+    var W1: list
+    var b1: list
+    var W2: list
+    var b2: list
+    func init(input_size: number, hidden_size: number, output_size: number) -> void {
+        self.W1 = []
+        for (var i: number = 0 in input_size) {
+            var linha: list = []
+            for (var j: number = 0 in hidden_size) {
+                linha.append(0.5)
+            }
+            self.W1.append(linha)
+        }
+        self.b1 = []
+        for (var i: number = 0 in hidden_size) {
+            self.b1.append(0.5)
+        }
+        self.W2 = []
+        for (var i: number = 0 in hidden_size) {
+            var linha: list = []
+            for (var j: number = 0 in output_size) {
+                linha.append(0.5)
+            }
+            self.W2.append(linha)
+        }
+        self.b2 = []
+        for (var i: number = 0 in output_size) {
+            self.b2.append(0.5)
+        }
+    }
+    func forward(X: list) -> list {
+        var Z1: list = []
+        for (var i: number = 0 in self.b1.length) {
+            var soma: number = 0
+            for (var j: number = 0 in X.length) {
+                soma = soma + X[j] * self.W1[j][i]
+            }
+            Z1.append(soma + self.b1[i])
+        }
+        var A1: list = relu(Z1)
+        var Z2: list = []
+        for (var i: number = 0 in self.b2.length) {
+            var soma: number = 0
+            for (var j: number = 0 in A1.length) {
+                soma = soma + A1[j] * self.W2[j][i]
+            }
+            Z2.append(soma + self.b2[i])
+        }
+        var A2: list = sigmoid(Z2)
+        return A2
+    }
+}
+
+class Recomendador {
+    var usuario: Usuario
+    var categorias: list
+    var todos_produtos: list
+    func init(usuario: Usuario, categorias: list) -> void {
+        self.usuario = usuario
+        self.categorias = categorias
+        self.todos_produtos = []
+        for (var i: number = 0 in categorias.length) {
+            var categoria: Categoria = categorias[i]
+            for (var j: number = 0 in categoria.produtos.length) {
+                self.todos_produtos.append(categoria.produtos[j].nome)
+            }
+        }
+    }
+    func recomendar() -> list {
+        var entrada_codificada: list = self.usuario.codificar_historico(self.todos_produtos)
+        var input_size: number = entrada_codificada.length
+        var hidden_size: number = 10
+        var output_size: number = entrada_codificada.length
+        var rede: RedeNeural = new RedeNeural(input_size, hidden_size, output_size)
+        var saida: list = rede.forward(entrada_codificada)
+        var recomendacoes: list = []
+        for (var i: number = 0 in saida.length) {
+            if (saida[i] > 0.5 && !self.usuario.historico_compras.contains(self.todos_produtos[i])) {
+                recomendacoes.append(self.todos_produtos[i])
+            }
+        }
+        return recomendacoes
+    }
+}
+
+seq {
+    var categorias: list = [
+        new Categoria("Eletrônicos", ["Smartphone", "Laptop", "Tablet", "Fones de ouvido"]),
+        new Categoria("Roupas", ["Camisa", "Jeans", "Jaqueta", "Sapatos"]),
+        new Categoria("Eletrodomésticos", ["Geladeira", "Micro-ondas", "Máquina de lavar", "Ar condicionado"]),
+        new Categoria("Livros", ["Ficção", "Não-ficção", "Ficção científica", "Fantasia"])
+    ]
+    var usuario: Usuario = new Usuario(["Smartphone", "Jeans", "Micro-ondas", "Ficção"])
+    var recomendador: Recomendador = new Recomendador(usuario, categorias)
+    var recomendacoes: list = recomendador.recomendar()
+    print("Produtos recomendados para você:")
+    for (var i: number = 0 in recomendacoes.length) {
+        print(recomendacoes[i])
+    }
+}
