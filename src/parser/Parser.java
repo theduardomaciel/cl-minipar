@@ -58,20 +58,18 @@ public class Parser {
      * @return ASTNode representando a declaração encontrada.
      */
     private ASTNode declaration() {
-        if (checkSequence(TokenType.ID, TokenType.ID)) {
-            return instanceDeclaration();
-        }
         if (match(TokenType.CLASS)) {
             return classDeclaration();
         }
         if (match(TokenType.FUNC)) {
             return functionDeclaration();
         }
-        if (match(TokenType.VAR)) {
-            return varDeclaration();
-        }
         if (match(TokenType.C_CHANNEL)) {
             return channelDeclaration();
+        }
+
+        if (isVarDeclStart()) {
+            return varDeclaration();
         }
 
         return statement();
@@ -126,8 +124,8 @@ public class Parser {
             if (isMethodStart()) {
                 // É um método: tipo id (...)
                 methods.add(methodDeclaration());
-            } else if (match(TokenType.VAR)) {
-                // É um atributo
+            } else if (isVarDeclStart()) {
+                // É um atributo (declaração de variável)
                 attributes.add(varDeclaration());
             } else {
                 throw error(peek(), "Esperado declaração de método ou atributo");
@@ -213,12 +211,11 @@ public class Parser {
      * @return VarDecl representando a variável.
      */
     private VarDecl varDeclaration() {
-        Token nameToken = consume(TokenType.ID, "Esperado nome da variável");
-        String varName = nameToken.lexeme();
-
-        consume(TokenType.COLON, "Esperado ':' após nome da variável");
+        // <tipo> <identificador> [= <expressao>] ;
         Token typeToken = advance();
         String type = typeToken.lexeme();
+        Token nameToken = consume(TokenType.ID, "Esperado nome da variável");
+        String varName = nameToken.lexeme();
 
         ASTNode initializer = null;
         if (match(TokenType.EQUAL)) {
@@ -348,11 +345,9 @@ public class Parser {
      */
     private ForStmt forStatement() {
         consume(TokenType.LEFT_PAREN, "Esperado '(' após 'for'");
-        // Forma: var id : tipo in expr
-        consume(TokenType.VAR, "Esperado 'var' na cláusula do for");
-        Token nameToken = consume(TokenType.ID, "Esperado nome da variável do for");
-        consume(TokenType.COLON, "Esperado ':' após nome da variável do for");
+        // Forma: <tipo> <id> in expr
         Token typeToken = advance();
+        Token nameToken = consume(TokenType.ID, "Esperado nome da variável do for");
         VarDecl variable = new VarDecl(nameToken.lexeme(), typeToken.lexeme(), null);
         consume(TokenType.IN, "Esperado 'in' no for");
         ASTNode iterable = expression();
@@ -827,6 +822,33 @@ public class Parser {
         }
 
         return false;
+    }
+
+    /**
+     * Verifica se a posição atual inicia uma declaração de variável no formato
+     * "<tipo> <identificador> [= ...] ;".
+     */
+    private boolean isVarDeclStart() {
+        if (isAtEnd()) return false;
+        TokenType t0 = peek().type();
+        if (!isTypeTokenOrId(t0)) return false;
+        if (current + 1 >= tokens.size()) return false;
+        TokenType t1 = tokens.get(current + 1).type();
+        if (t1 != TokenType.ID) return false;
+        // Heurística: se depois do nome vier '=' ou ';', tratamos como declaração
+        if (current + 2 < tokens.size()) {
+            TokenType t2 = tokens.get(current + 2).type();
+            if (t2 == TokenType.EQUAL || t2 == TokenType.SEMICOLON) return true;
+        }
+        return false;
+    }
+
+    /** Verifica se é um token de tipo embutido ou um identificador (tipo customizado). */
+    private boolean isTypeTokenOrId(TokenType tt) {
+        return tt == TokenType.TYPE_NUMBER || tt == TokenType.TYPE_STRING ||
+               tt == TokenType.TYPE_BOOL   || tt == TokenType.TYPE_VOID   ||
+               tt == TokenType.TYPE_LIST   || tt == TokenType.TYPE_DICT   ||
+               tt == TokenType.ID;
     }
 
     /**

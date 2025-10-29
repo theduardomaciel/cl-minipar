@@ -38,7 +38,7 @@
 
 ## VARIÁVEIS
 
-<declaracao_variavel> ::= "var" <identificador> ":" <tipo> [ "=" <expressao> ]
+<declaracao_variavel> ::= <tipo> <identificador> [ "=" <expressao> ]
 
 <atribuicao> ::= <identificador> "=" <expressao>
 
@@ -65,7 +65,7 @@
 
 <comando_while> ::= "while" "(" <expressao> ")" "{" { <comando> } "}"
 
-<comando_for> ::= "for" "(" <declaracao_variavel> "in" <expressao> ")"
+<comando_for> ::= "for" "(" <tipo> <identificador> "in" <expressao> ")"
                   "{" { <comando> } "}"
 
 <comando_do_while> ::= "do" "{" { <comando> } "}" "while" "(" <expressao> ")" ";"
