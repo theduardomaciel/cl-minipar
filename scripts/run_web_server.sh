@@ -15,7 +15,7 @@ cd "$PROJECT_DIR"
 mkdir -p build
 
 echo "Compilando classes Java..."
-javac -d build -sourcepath src src/WebServer.java src/Main.java \
+javac -d build -sourcepath src src/server/WebServer.java src/Main.java \
     src/lexer/*.java \
     src/parser/*.java \
     src/interpreter/*.java

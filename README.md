@@ -147,7 +147,7 @@ A gramática BNF da linguagem MiniPar que desenvolvemos nesse projeto está disp
 
 ---
 
-## 🎥 Demonstração em Vídeo
+## 🎥 Demonstrações em Vídeo
 
 > 🎬 **Link para o vídeo da Atividade 2:**
 > [pendente]
@@ -158,6 +158,15 @@ O vídeo mostra:
 * Impressão dos tokens reconhecidos;
 * Construção e exibição da AST;
 * Explicação breve da arquitetura do projeto.
+
+> 🎬 **Link para o vídeo da Versão Final:**
+> [pendente]
+
+O vídeo mostra:
+
+* Execução do interpretador orientado a objetos;
+* Demonstração da interface web com syntax highlighting;
+* Visualização gráfica da AST na interface web.
 
 ---
 
@@ -182,4 +191,3 @@ Atividade desenvolvida por:
 * [Maria Letícia (@letsventura)](https://github.com/letsventura)
 
 ---
-

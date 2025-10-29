@@ -14,7 +14,7 @@ REM Criar diretorio de build se nao existir
 if not exist build mkdir build
 
 echo [1/2] Compilando classes Java...
-javac -encoding UTF-8 -d build -sourcepath src src/server.WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
+javac -encoding UTF-8 -d build -sourcepath src src/server/WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
 
 if %ERRORLEVEL% neq 0 (
     echo [ERRO] Falha na compilacao!
