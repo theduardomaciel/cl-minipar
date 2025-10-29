@@ -1,0 +1,32 @@
+# Teste de herança com super()
+class Pessoa {
+    string nome;
+    number idade;
+
+    Pessoa(string n, number i) {
+        this.nome = n;
+        this.idade = i;
+    }
+
+    void apresentar() {
+        println("Nome: ", this.nome);
+        println("Idade: ", this.idade);
+    }
+}
+
+class Estudante extends Pessoa {
+    string curso;
+
+    Estudante(string n, number i, string c) {
+        super(n, i);
+        this.curso = c;
+    }
+
+    void mostrarInfo() {
+        this.apresentar();
+        println("Curso: ", this.curso);
+    }
+}
+
+Estudante e = new Estudante("Maria", 20, "Computação");
+e.mostrarInfo();

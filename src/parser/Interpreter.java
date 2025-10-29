@@ -15,8 +15,10 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  * Interpretador da AST do MiniPar OOP.
- * Implementa execução com suporte a: variáveis, funções, classes/objetos, listas/dicionários,
- * controle de fluxo (if/while/do-while/for), blocos seq/par (threads), canais (c_channel),
+ * Implementa execução com suporte a: variáveis, funções, classes/objetos,
+ * listas/dicionários,
+ * controle de fluxo (if/while/do-while/for), blocos seq/par (threads), canais
+ * (c_channel),
  * entrada/saída, recursão e operadores.
  */
 public class Interpreter {
@@ -54,18 +56,19 @@ public class Interpreter {
             return (a > b) ? a : b;
         });
     }
-    
+
     // Propriedades para acesso ao environment da thread atual
     private Environment getEnv() {
         return threadEnv.get();
     }
-    
+
     private void setEnv(Environment e) {
         threadEnv.set(e);
     }
 
     /**
      * Define o callback para entrada de dados.
+     * 
      * @param callback Callback para solicitar entrada do usuário
      */
     public void setInputCallback(InputCallback callback) {
@@ -81,30 +84,49 @@ public class Interpreter {
     // ===== Execução de nós =====
 
     private Object exec(ASTNode node) {
-        if (node == null) return null;
+        if (node == null)
+            return null;
 
         try {
             // Declarações e statements de topo
-            if (node instanceof Program p) return execProgram(p);
-            if (node instanceof VarDecl v) return execVarDecl(v);
-            if (node instanceof FuncDecl f) return execFuncDecl(f);
-            if (node instanceof ClassDecl c) return execClassDecl(c);
-            if (node instanceof CanalDecl c) return execCanalDecl(c);
-            if (node instanceof SeqBlock s) return execSeq(s.statements);
-            if (node instanceof ParBlock p) return execPar(p.statements);
-            if (node instanceof IfStmt i) return execIf(i);
-            if (node instanceof WhileStmt w) return execWhile(w);
-            if (node instanceof DoWhileStmt d) return execDoWhile(d);
-            if (node instanceof ForStmt f) return execFor(f);
-            if (node instanceof PrintStmt p) return execPrint(p);
-            if (node instanceof ReturnStmt r) throw new ReturnSignal(eval(r.value));
-            if (node instanceof BreakStmt) throw new BreakSignal();
-            if (node instanceof ContinueStmt) throw new ContinueSignal();
+            if (node instanceof Program p)
+                return execProgram(p);
+            if (node instanceof VarDecl v)
+                return execVarDecl(v);
+            if (node instanceof FuncDecl f)
+                return execFuncDecl(f);
+            if (node instanceof ClassDecl c)
+                return execClassDecl(c);
+            if (node instanceof CanalDecl c)
+                return execCanalDecl(c);
+            if (node instanceof SeqBlock s)
+                return execSeq(s.statements);
+            if (node instanceof ParBlock p)
+                return execPar(p.statements);
+            if (node instanceof IfStmt i)
+                return execIf(i);
+            if (node instanceof WhileStmt w)
+                return execWhile(w);
+            if (node instanceof DoWhileStmt d)
+                return execDoWhile(d);
+            if (node instanceof ForStmt f)
+                return execFor(f);
+            if (node instanceof PrintStmt p)
+                return execPrint(p);
+            if (node instanceof ReturnStmt r)
+                throw new ReturnSignal(eval(r.value));
+            if (node instanceof BreakStmt)
+                throw new BreakSignal();
+            if (node instanceof ContinueStmt)
+                throw new ContinueSignal();
 
             // Expressões
-            if (node instanceof Assignment a) return execAssignment(a);
-            if (node instanceof IndexAssign ia) return execIndexAssign(ia);
-            if (node instanceof PropertyAssign pa) return execPropertyAssign(pa);
+            if (node instanceof Assignment a)
+                return execAssignment(a);
+            if (node instanceof IndexAssign ia)
+                return execIndexAssign(ia);
+            if (node instanceof PropertyAssign pa)
+                return execPropertyAssign(pa);
 
             return eval(node);
         } catch (RuntimeException e) {
@@ -134,30 +156,43 @@ public class Interpreter {
     private Object execClassDecl(ClassDecl c) {
         // Mapear métodos por nome
         Map<String, MethodDecl> methods = new HashMap<>();
-        for (MethodDecl m : c.methods) methods.put(m.name, m);
-        MiniClass klass = new MiniClass(c.name, c.superClass, c.attributes, methods);
+        for (MethodDecl m : c.methods)
+            methods.put(m.name, m);
+        // Resolver superclasse, se houver
+        MiniClass superKlass = null;
+        if (c.superClass != null) {
+            Object sup = getEnv().get(c.superClass);
+            if (sup instanceof MiniClass mk) {
+                superKlass = mk;
+            } else {
+                throw new RuntimeException("Superclasse não definida: " + c.superClass);
+            }
+        }
+        MiniClass klass = new MiniClass(c.name, superKlass, c.attributes, methods);
         getEnv().define(c.name, klass);
         return null;
     }
 
     private Object execCanalDecl(CanalDecl c) {
-        // Se for forma com parênteses, criar um canal para cada nome; caso contrário, primeiro nome é o canal
-        if (c.nomes == null || c.nomes.isEmpty()) return null;
+        // Se for forma com parênteses, criar um canal para cada nome; caso contrário,
+        // primeiro nome é o canal
+        if (c.nomes == null || c.nomes.isEmpty())
+            return null;
         if (c.nomes.size() >= 3) {
             // Na sintaxe "c_channel canal comp1 comp2", criar canal TCP
             String canalName = c.nomes.get(0);
             String comp1 = c.nomes.get(1);
             String comp2 = c.nomes.get(2);
-            
+
             // Pergunta ao usuário se este processo é servidor ou cliente
             System.out.println("\n[Configuração do Canal TCP '" + canalName + "']");
             System.out.println("Este processo é (1) Servidor ou (2) Cliente?");
             System.out.print("Digite 1 ou 2: ");
-            
+
             try {
                 String resposta = reader.readLine().trim();
                 boolean isServer = resposta.equals("1");
-                
+
                 TCPChannel tcpChannel;
                 if (isServer) {
                     // Servidor: escuta em uma porta
@@ -174,7 +209,7 @@ public class Interpreter {
                     tcpChannel = new TCPChannel(canalName, port, false);
                     tcpChannel.start(host);
                 }
-                
+
                 getEnv().define(canalName, tcpChannel);
             } catch (Exception e) {
                 throw new RuntimeException("Erro ao configurar canal TCP: " + e.getMessage());
@@ -188,7 +223,8 @@ public class Interpreter {
     }
 
     private Object execSeq(List<ASTNode> statements) {
-        for (ASTNode s : statements) exec(s);
+        for (ASTNode s : statements)
+            exec(s);
         return null;
     }
 
@@ -196,11 +232,11 @@ public class Interpreter {
         // IMPLEMENTAÇÃO COM PARALELISMO REAL E AGRUPAMENTO INTELIGENTE
         // Agrupa VarDecl + próximos statements que usam a variável
         List<List<ASTNode>> groups = groupStatements(statements);
-        
+
         List<Thread> threads = new ArrayList<>();
         List<Throwable> errors = new ArrayList<>();
         Environment parentEnv = getEnv();
-        
+
         for (List<ASTNode> group : groups) {
             Thread t = new Thread(() -> {
                 try {
@@ -214,7 +250,7 @@ public class Interpreter {
                             }
                         });
                     }
-                    
+
                     for (ASTNode s : group) {
                         exec(s);
                     }
@@ -227,31 +263,35 @@ public class Interpreter {
             threads.add(t);
             t.start();
         }
-        
+
         // Aguarda todas as threads terminarem
         for (Thread t : threads) {
-            try { t.join(); } catch (InterruptedException ignored) {}
+            try {
+                t.join();
+            } catch (InterruptedException ignored) {
+            }
         }
-        
+
         // Propaga primeiro erro se houver
         if (!errors.isEmpty()) {
             Throwable first = errors.get(0);
-            if (first instanceof RuntimeException) throw (RuntimeException) first;
+            if (first instanceof RuntimeException)
+                throw (RuntimeException) first;
             throw new RuntimeException("Erro em thread paralela", first);
         }
-        
+
         return null;
     }
-    
+
     // Agrupa statements relacionados para execução na mesma thread
     private List<List<ASTNode>> groupStatements(List<ASTNode> statements) {
         List<List<ASTNode>> groups = new ArrayList<>();
         int i = 0;
-        
+
         while (i < statements.size()) {
             List<ASTNode> group = new ArrayList<>();
             group.add(statements.get(i));
-            
+
             // Se é VarDecl, agrupa com o próximo statement (provavelmente usa a variável)
             if (statements.get(i) instanceof VarDecl && i + 1 < statements.size()) {
                 group.add(statements.get(i + 1));
@@ -259,10 +299,10 @@ public class Interpreter {
             } else {
                 i++;
             }
-            
+
             groups.add(group);
         }
-        
+
         return groups;
     }
 
@@ -326,25 +366,26 @@ public class Interpreter {
 
     private Object execPrint(PrintStmt p) {
         List<Object> vals = new ArrayList<>();
-        for (ASTNode a : p.arguments) vals.add(eval(a));
-        
+        for (ASTNode a : p.arguments)
+            vals.add(eval(a));
+
         if (vals.isEmpty()) {
             if (p.newline) {
                 System.out.println();
             }
             return null;
         }
-        
+
         // Imprime todos os argumentos concatenados (sem espaços entre eles)
         for (Object val : vals) {
             System.out.print(stringify(val));
         }
-        
+
         // Adiciona quebra de linha se for println
         if (p.newline) {
             System.out.println();
         }
-        
+
         return null;
     }
 
@@ -364,8 +405,9 @@ public class Interpreter {
             setListIndex(list, i, value);
             return value;
         }
-        if (target instanceof Map<?,?> m) {
-            @SuppressWarnings("unchecked") Map<Object,Object> map = (Map<Object,Object>) m;
+        if (target instanceof Map<?, ?> m) {
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> map = (Map<Object, Object>) m;
             map.put(index, value);
             return value;
         }
@@ -385,25 +427,52 @@ public class Interpreter {
     // ===== Avaliação de expressões =====
 
     private Object eval(ASTNode node) {
-        if (node == null) return null;
-        if (node instanceof Literal l) return l.value;
-        if (node instanceof Identifier id) return getEnv().get(id.name);
-        if (node instanceof UnaryExpr u) return evalUnary(u);
-        if (node instanceof BinaryExpr b) return evalBinary(b);
-        if (node instanceof ListLiteral ll) return evalListLiteral(ll);
-        if (node instanceof DictLiteral dl) return evalDictLiteral(dl);
-        if (node instanceof IndexExpr ie) return evalIndexExpr(ie);
-        if (node instanceof PropertyAccess pa) return evalPropertyAccess(pa);
-        if (node instanceof InputExpr in) return evalInput(in);
-        if (node instanceof ReadlnExpr) return evalReadln();
-        if (node instanceof ReadNumberExpr) return evalReadNumber();
-        if (node instanceof NewInstance ni) return evalNewInstance(ni);
-        if (node instanceof MethodCall mc) return evalMethodCall(mc);
-        if (node instanceof FunctionCall fc) return evalFunctionCall(fc);
-        if (node instanceof ThisExpr) return getEnv().get("this");
-        if (node instanceof SendStmt s) { execSend(s); return null; }
-        if (node instanceof ReceiveStmt r) { execReceive(r); return null; }
-        if (node instanceof Program p) { execProgram(p); return null; }
+        if (node == null)
+            return null;
+        if (node instanceof Literal l)
+            return l.value;
+        if (node instanceof Identifier id)
+            return getEnv().get(id.name);
+        if (node instanceof UnaryExpr u)
+            return evalUnary(u);
+        if (node instanceof BinaryExpr b)
+            return evalBinary(b);
+        if (node instanceof ListLiteral ll)
+            return evalListLiteral(ll);
+        if (node instanceof DictLiteral dl)
+            return evalDictLiteral(dl);
+        if (node instanceof IndexExpr ie)
+            return evalIndexExpr(ie);
+        if (node instanceof PropertyAccess pa)
+            return evalPropertyAccess(pa);
+        if (node instanceof InputExpr in)
+            return evalInput(in);
+        if (node instanceof ReadlnExpr)
+            return evalReadln();
+        if (node instanceof ReadNumberExpr)
+            return evalReadNumber();
+        if (node instanceof NewInstance ni)
+            return evalNewInstance(ni);
+        if (node instanceof MethodCall mc)
+            return evalMethodCall(mc);
+        if (node instanceof FunctionCall fc)
+            return evalFunctionCall(fc);
+        if (node instanceof ThisExpr)
+            return getEnv().get("this");
+        if (node instanceof SuperCall sc)
+            return evalSuperCall(sc);
+        if (node instanceof SendStmt s) {
+            execSend(s);
+            return null;
+        }
+        if (node instanceof ReceiveStmt r) {
+            execReceive(r);
+            return null;
+        }
+        if (node instanceof Program p) {
+            execProgram(p);
+            return null;
+        }
         // Outras formas já cobertas em exec(...)
         throw new RuntimeException("Nós de expressão não suportados: " + node.getClass().getSimpleName());
     }
@@ -423,17 +492,25 @@ public class Interpreter {
         String op = b.operator;
 
         // Lógicos curtos
-        if (Objects.equals(op, "&&")) return isTruthy(left) && isTruthy(right);
-        if (Objects.equals(op, "||")) return isTruthy(left) || isTruthy(right);
+        if (Objects.equals(op, "&&"))
+            return isTruthy(left) && isTruthy(right);
+        if (Objects.equals(op, "||"))
+            return isTruthy(left) || isTruthy(right);
 
         // Comparações e igualdade
         switch (op) {
-            case "==": return equals(left, right);
-            case "!=": return !equals(left, right);
-            case ">": return toNumber(left) > toNumber(right);
-            case ">=": return toNumber(left) >= toNumber(right);
-            case "<": return toNumber(left) < toNumber(right);
-            case "<=": return toNumber(left) <= toNumber(right);
+            case "==":
+                return equals(left, right);
+            case "!=":
+                return !equals(left, right);
+            case ">":
+                return toNumber(left) > toNumber(right);
+            case ">=":
+                return toNumber(left) >= toNumber(right);
+            case "<":
+                return toNumber(left) < toNumber(right);
+            case "<=":
+                return toNumber(left) <= toNumber(right);
         }
 
         // Aritmética ou concatenação
@@ -443,23 +520,29 @@ public class Interpreter {
                     return stringify(left) + stringify(right);
                 }
                 return toNumber(left) + toNumber(right);
-            case "-": return toNumber(left) - toNumber(right);
-            case "*": return toNumber(left) * toNumber(right);
-            case "/": return toNumber(left) / toNumber(right);
-            case "%": return toNumber(left) % toNumber(right);
+            case "-":
+                return toNumber(left) - toNumber(right);
+            case "*":
+                return toNumber(left) * toNumber(right);
+            case "/":
+                return toNumber(left) / toNumber(right);
+            case "%":
+                return toNumber(left) % toNumber(right);
         }
         throw new RuntimeException("Operador desconhecido: " + op);
     }
 
     private Object evalListLiteral(ListLiteral ll) {
         List<Object> list = new ArrayList<>();
-        for (ASTNode e : ll.elements) list.add(eval(e));
+        for (ASTNode e : ll.elements)
+            list.add(eval(e));
         return list;
     }
 
     private Object evalDictLiteral(DictLiteral dl) {
-        Map<Object,Object> map = new HashMap<>();
-        for (DictEntry e : dl.entries) map.put(eval(e.key), eval(e.value));
+        Map<Object, Object> map = new HashMap<>();
+        for (DictEntry e : dl.entries)
+            map.put(eval(e.key), eval(e.value));
         return map;
     }
 
@@ -469,11 +552,13 @@ public class Interpreter {
         if (target instanceof List<?> lst) {
             int i = (int) toNumber(index);
             List<Object> l = castList(lst);
-            if (i < 0 || i >= l.size()) return null;
+            if (i < 0 || i >= l.size())
+                return null;
             return l.get(i);
         }
-        if (target instanceof Map<?,?> m) {
-            @SuppressWarnings("unchecked") Map<Object,Object> map = (Map<Object,Object>) m;
+        if (target instanceof Map<?, ?> m) {
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> map = (Map<Object, Object>) m;
             return map.get(index);
         }
         throw new RuntimeException("Indexação suportada apenas para listas e dicionários");
@@ -485,25 +570,31 @@ public class Interpreter {
             return inst.get(pa.propertyName);
         }
         if (obj instanceof List<?> lst) {
-            if (pa.propertyName.equals("length")) return ((List<?>) lst).size();
+            if (pa.propertyName.equals("length"))
+                return ((List<?>) lst).size();
         }
         if (obj instanceof String s) {
-            if (pa.propertyName.equals("length")) return s.length();
+            if (pa.propertyName.equals("length"))
+                return s.length();
         }
-        if (obj instanceof Map<?,?> m) {
-            if (pa.propertyName.equals("length")) return ((Map<?,?>) m).size();
+        if (obj instanceof Map<?, ?> m) {
+            if (pa.propertyName.equals("length"))
+                return ((Map<?, ?>) m).size();
         }
         throw new RuntimeException("Propriedade desconhecida: " + pa.propertyName);
     }
 
     private Object evalInput(InputExpr in) {
-        if (in.prompt != null) System.out.print(stringify(eval(in.prompt)));
+        if (in.prompt != null)
+            System.out.print(stringify(eval(in.prompt)));
         try {
             String line = reader.readLine();
-            if (line == null) return null;
+            if (line == null)
+                return null;
             // tenta número
             try {
-                if (line.contains(".")) return Double.parseDouble(line.trim());
+                if (line.contains("."))
+                    return Double.parseDouble(line.trim());
                 return Integer.parseInt(line.trim());
             } catch (NumberFormatException e) {
                 return line;
@@ -535,7 +626,8 @@ public class Interpreter {
             }
             // Caso contrário, lê do console
             String line = reader.readLine();
-            if (line == null) return 0.0;
+            if (line == null)
+                return 0.0;
             line = line.trim();
             if (line.contains(".")) {
                 return Double.parseDouble(line);
@@ -554,14 +646,16 @@ public class Interpreter {
             throw new RuntimeException("Classe não definida: " + ni.className);
         }
         List<Object> args = new ArrayList<>();
-        for (ASTNode a : ni.arguments) args.add(eval(a));
+        for (ASTNode a : ni.arguments)
+            args.add(eval(a));
         return klass.instantiate(args);
     }
 
     private Object evalMethodCall(MethodCall mc) {
         Object obj = eval(mc.object);
         List<Object> args = new ArrayList<>();
-        for (ASTNode a : mc.arguments) args.add(eval(a));
+        for (ASTNode a : mc.arguments)
+            args.add(eval(a));
         if (obj instanceof MiniInstance inst) {
             return inst.call(mc.methodName, args);
         }
@@ -570,7 +664,8 @@ public class Interpreter {
 
     private Object evalFunctionCall(FunctionCall fc) {
         List<Object> args = new ArrayList<>();
-        for (ASTNode a : fc.arguments) args.add(eval(a));
+        for (ASTNode a : fc.arguments)
+            args.add(eval(a));
         // built-in
         if (builtins.containsKey(fc.functionName)) {
             return builtins.get(fc.functionName).call(args);
@@ -585,14 +680,14 @@ public class Interpreter {
 
     private void execSend(SendStmt s) {
         Object ch = eval(s.channel);
-        
+
         // Avalia cada argumento e adiciona à mensagem
         List<Object> messageToSend = new ArrayList<>();
         for (ASTNode a : s.arguments) {
             Object val = eval(a);
             messageToSend.add(val);
         }
-        
+
         // Suporta tanto Channel local quanto TCPChannel
         if (ch instanceof Channel c) {
             c.send(messageToSend);
@@ -610,7 +705,7 @@ public class Interpreter {
     private void execReceive(ReceiveStmt r) {
         Object ch = eval(r.channel);
         List<Object> msg;
-        
+
         // Suporta tanto Channel local quanto TCPChannel
         if (ch instanceof Channel c) {
             msg = c.receive();
@@ -623,8 +718,9 @@ public class Interpreter {
         } else {
             throw new RuntimeException("Objeto não é canal: " + ch);
         }
-        
-        // Distribui cada elemento da mensagem recebida para as variáveis correspondentes
+
+        // Distribui cada elemento da mensagem recebida para as variáveis
+        // correspondentes
         int minSize = Math.min(r.arguments.size(), msg.size());
         for (int i = 0; i < minSize; i++) {
             ASTNode target = r.arguments.get(i);
@@ -653,8 +749,9 @@ public class Interpreter {
                 setListIndex(l, i, value);
                 return;
             }
-            if (t instanceof Map<?,?> m) {
-                @SuppressWarnings("unchecked") Map<Object,Object> map = (Map<Object,Object>) m;
+            if (t instanceof Map<?, ?> m) {
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> map = (Map<Object, Object>) m;
                 map.put(idx, value);
                 return;
             }
@@ -665,39 +762,52 @@ public class Interpreter {
     // ===== Utilitários =====
 
     private boolean isTruthy(Object v) {
-        if (v == null) return false;
-        if (v instanceof Boolean b) return b;
-        if (v instanceof Number n) return n.doubleValue() != 0.0;
-        if (v instanceof String s) return !s.isEmpty();
-        if (v instanceof List<?> l) return !l.isEmpty();
-        if (v instanceof Map<?,?> m) return !m.isEmpty();
+        if (v == null)
+            return false;
+        if (v instanceof Boolean b)
+            return b;
+        if (v instanceof Number n)
+            return n.doubleValue() != 0.0;
+        if (v instanceof String s)
+            return !s.isEmpty();
+        if (v instanceof List<?> l)
+            return !l.isEmpty();
+        if (v instanceof Map<?, ?> m)
+            return !m.isEmpty();
         return true;
     }
 
     private String stringify(Object v) {
-        if (v == null) return "null";
+        if (v == null)
+            return "null";
         if (v instanceof Double d) {
-            if (d % 1 == 0) return String.valueOf(d.longValue());
-            // return d.toString();  // Retornava notação científica para números pequenos
+            if (d % 1 == 0)
+                return String.valueOf(d.longValue());
+            // return d.toString(); // Retornava notação científica para números pequenos
             return String.format("%.4f", d);
         }
-        if (v instanceof Integer i) return i.toString();
-        if (v instanceof Boolean b) return b.toString();
-        if (v instanceof String s) return s;
+        if (v instanceof Integer i)
+            return i.toString();
+        if (v instanceof Boolean b)
+            return b.toString();
+        if (v instanceof String s)
+            return s;
         if (v instanceof List<?> l) {
             StringBuilder sb = new StringBuilder("[");
             for (int i = 0; i < l.size(); i++) {
-                if (i > 0) sb.append(", ");
+                if (i > 0)
+                    sb.append(", ");
                 sb.append(stringify(l.get(i)));
             }
             sb.append("]");
             return sb.toString();
         }
-        if (v instanceof Map<?,?> m) {
+        if (v instanceof Map<?, ?> m) {
             StringBuilder sb = new StringBuilder("{");
             int i = 0;
-            for (Map.Entry<?,?> e : m.entrySet()) {
-                if (i++ > 0) sb.append(", ");
+            for (Map.Entry<?, ?> e : m.entrySet()) {
+                if (i++ > 0)
+                    sb.append(", ");
                 sb.append(stringify(e.getKey())).append(": ").append(stringify(e.getValue()));
             }
             sb.append("}");
@@ -707,8 +817,10 @@ public class Interpreter {
     }
 
     private boolean equals(Object a, Object b) {
-        if (a == null && b == null) return true;
-        if (a == null || b == null) return false;
+        if (a == null && b == null)
+            return true;
+        if (a == null || b == null)
+            return false;
         if (a instanceof Number && b instanceof Number) {
             return Double.compare(((Number) a).doubleValue(), ((Number) b).doubleValue()) == 0;
         }
@@ -716,18 +828,23 @@ public class Interpreter {
     }
 
     private double toNumber(Object v) {
-        if (v instanceof Integer i) return i.doubleValue();
-        if (v instanceof Double d) return d;
-        if (v instanceof Number n) return n.doubleValue();
+        if (v instanceof Integer i)
+            return i.doubleValue();
+        if (v instanceof Double d)
+            return d;
+        if (v instanceof Number n)
+            return n.doubleValue();
         if (v instanceof String s) {
             try {
-                if (s.contains(".")) return Double.parseDouble(s);
+                if (s.contains("."))
+                    return Double.parseDouble(s);
                 return Integer.parseInt(s);
             } catch (NumberFormatException e) {
                 throw new RuntimeException("Esperado número, obtido: '" + s + "'");
             }
         }
-        throw new RuntimeException("Esperado número, obtido tipo: " + (v == null ? "null" : v.getClass().getSimpleName()));
+        throw new RuntimeException(
+                "Esperado número, obtido tipo: " + (v == null ? "null" : v.getClass().getSimpleName()));
     }
 
     @SuppressWarnings("unchecked")
@@ -736,7 +853,8 @@ public class Interpreter {
     }
 
     private void setListIndex(List<Object> l, int i, Object v) {
-        while (l.size() <= i) l.add(null);
+        while (l.size() <= i)
+            l.add(null);
         l.set(i, v);
     }
 
@@ -760,11 +878,17 @@ public class Interpreter {
 
     private static class ReturnSignal extends RuntimeException {
         final Object value;
-        ReturnSignal(Object value) { this.value = value; }
+
+        ReturnSignal(Object value) {
+            this.value = value;
+        }
     }
 
-    private static class BreakSignal extends RuntimeException {}
-    private static class ContinueSignal extends RuntimeException {}
+    private static class BreakSignal extends RuntimeException {
+    }
+
+    private static class ContinueSignal extends RuntimeException {
+    }
 
     private class MiniFunction {
         final String name;
@@ -773,7 +897,10 @@ public class Interpreter {
         final Environment closure;
 
         MiniFunction(String name, List<Parameter> params, List<ASTNode> body, Environment closure) {
-            this.name = name; this.params = params; this.body = body; this.closure = closure;
+            this.name = name;
+            this.params = params;
+            this.body = body;
+            this.closure = closure;
         }
 
         Object call(List<Object> args) {
@@ -786,7 +913,8 @@ public class Interpreter {
             Environment prev = getEnv();
             setEnv(local);
             try {
-                for (ASTNode s : body) exec(s);
+                for (ASTNode s : body)
+                    exec(s);
             } catch (ReturnSignal rs) {
                 return rs.value;
             } finally {
@@ -798,36 +926,48 @@ public class Interpreter {
 
     private class MiniClass {
         final String name;
-        final String superName; // não usado neste MVP
+        final MiniClass superKlass; // referência direta à superclasse (pode ser null)
         final List<VarDecl> attrs;
         final Map<String, MethodDecl> methods;
 
-        MiniClass(String name, String superName, List<VarDecl> attrs, Map<String, MethodDecl> methods) {
-            this.name = name; this.superName = superName; this.attrs = attrs; this.methods = methods;
+        MiniClass(String name, MiniClass superKlass, List<VarDecl> attrs, Map<String, MethodDecl> methods) {
+            this.name = name;
+            this.superKlass = superKlass;
+            this.attrs = attrs;
+            this.methods = methods;
         }
 
         MiniInstance instantiate(List<Object> args) {
             MiniInstance inst = new MiniInstance(this);
-            // inicializar atributos (null ou initializer avaliado no contexto da instância)
-            for (VarDecl v : attrs) {
+            // Inicializa atributos herdados primeiro, depois os da classe atual
+            initializeAttributesChain(inst, this);
+            // Construtor opcional: nome igual à classe
+            MethodDecl ctor = methods.get(name);
+            if (ctor != null) {
+                inst.call(name, args);
+            }
+            return inst;
+        }
+
+        private void initializeAttributesChain(MiniInstance inst, MiniClass k) {
+            if (k.superKlass != null) {
+                initializeAttributesChain(inst, k.superKlass);
+            }
+            for (VarDecl v : k.attrs) {
                 Object init = null;
                 if (v.initializer != null) {
-                    // criar ambiente com this
                     Environment prev = getEnv();
                     Environment local = new Environment(prev);
                     local.define("this", inst);
                     setEnv(local);
-                    try { init = eval(v.initializer); }
-                    finally { setEnv(prev); }
+                    try {
+                        init = eval(v.initializer);
+                    } finally {
+                        setEnv(prev);
+                    }
                 }
                 inst.fields.put(v.name, init);
             }
-            // construtor opcional: nome igual à classe
-            MethodDecl ctor = methods.get(name);
-            if (ctor != null) {
-                inst.call(ctor.name, args);
-            }
-            return inst;
         }
     }
 
@@ -835,16 +975,19 @@ public class Interpreter {
         final MiniClass klass;
         final Map<String, Object> fields = new HashMap<>();
 
-        MiniInstance(MiniClass k) { this.klass = k; }
+        MiniInstance(MiniClass k) {
+            this.klass = k;
+        }
 
         Object get(String name) {
-            if (fields.containsKey(name)) return fields.get(name);
-            MethodDecl m = klass.methods.get(name);
+            if (fields.containsKey(name))
+                return fields.get(name);
+            MethodDecl m = findMethodInHierarchy(name);
             if (m != null) {
-                // retorna um callable que quando chamado executa o método com this
                 return new BoundMethod(this, m);
             }
-            if (name.equals("length")) return fields.size();
+            if (name.equals("length"))
+                return fields.size();
             throw new RuntimeException("Propriedade/método não encontrado: " + name);
         }
 
@@ -853,8 +996,9 @@ public class Interpreter {
         }
 
         Object call(String methodName, List<Object> args) {
-            MethodDecl m = klass.methods.get(methodName);
-            if (m == null) throw new RuntimeException("Método não encontrado: " + methodName);
+            MethodDecl m = findMethodInHierarchy(methodName);
+            if (m == null)
+                throw new RuntimeException("Método não encontrado: " + methodName);
             Environment local = new Environment(getEnv());
             local.define("this", this);
             for (int i = 0; i < m.parameters.size(); i++) {
@@ -865,11 +1009,48 @@ public class Interpreter {
             Environment prev = getEnv();
             setEnv(local);
             try {
-                for (ASTNode s : m.body) exec(s);
+                for (ASTNode s : m.body)
+                    exec(s);
             } catch (ReturnSignal rs) {
                 return rs.value;
             } finally {
                 setEnv(prev);
+            }
+            return null;
+        }
+
+        // Invoca método definido especificamente em targetKlass (ignora sobrescritas)
+        Object callInClass(MiniClass targetKlass, String methodName, List<Object> args) {
+            MethodDecl m = targetKlass.methods.get(methodName);
+            if (m == null)
+                throw new RuntimeException("Método não encontrado na superclasse: " + methodName);
+            Environment local = new Environment(getEnv());
+            local.define("this", this);
+            for (int i = 0; i < m.parameters.size(); i++) {
+                String pname = m.parameters.get(i).name;
+                Object pval = i < args.size() ? args.get(i) : null;
+                local.define(pname, pval);
+            }
+            Environment prev = getEnv();
+            setEnv(local);
+            try {
+                for (ASTNode s : m.body)
+                    exec(s);
+            } catch (ReturnSignal rs) {
+                return rs.value;
+            } finally {
+                setEnv(prev);
+            }
+            return null;
+        }
+
+        private MethodDecl findMethodInHierarchy(String name) {
+            MiniClass k = this.klass;
+            while (k != null) {
+                MethodDecl m = k.methods.get(name);
+                if (m != null)
+                    return m;
+                k = k.superKlass;
             }
             return null;
         }
@@ -878,16 +1059,59 @@ public class Interpreter {
     private class BoundMethod {
         final MiniInstance receiver;
         final MethodDecl decl;
-        BoundMethod(MiniInstance r, MethodDecl d) { this.receiver = r; this.decl = d; }
-        Object call(List<Object> args) { return receiver.call(decl.name, args); }
-        @Override public String toString() { return "<method " + decl.name + ">"; }
+
+        BoundMethod(MiniInstance r, MethodDecl d) {
+            this.receiver = r;
+            this.decl = d;
+        }
+
+        Object call(List<Object> args) {
+            return receiver.call(decl.name, args);
+        }
+
+        @Override
+        public String toString() {
+            return "<method " + decl.name + ">";
+        }
     }
 
     private static class Channel {
         final String name;
         final BlockingQueue<List<Object>> queue = new ArrayBlockingQueue<>(1024);
-        Channel(String name) { this.name = name; }
-        void send(List<Object> msg) { try { queue.put(msg); } catch (InterruptedException ignored) {} }
-        List<Object> receive() { try { return queue.take(); } catch (InterruptedException e) { return List.of(); } }
+
+        Channel(String name) {
+            this.name = name;
+        }
+
+        void send(List<Object> msg) {
+            try {
+                queue.put(msg);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+        List<Object> receive() {
+            try {
+                return queue.take();
+            } catch (InterruptedException e) {
+                return List.of();
+            }
+        }
+    }
+
+    // ===== Super =====
+    private Object evalSuperCall(SuperCall sc) {
+        Object thiz = getEnv().get("this");
+        if (!(thiz instanceof MiniInstance inst)) {
+            throw new RuntimeException("'super' só pode ser usado dentro de um construtor");
+        }
+        MiniClass parent = inst.klass.superKlass;
+        if (parent == null) {
+            throw new RuntimeException("Classe não possui superclasse para 'super' chamar");
+        }
+        List<Object> args = new ArrayList<>();
+        for (ASTNode a : sc.arguments)
+            args.add(eval(a));
+        return inst.callInClass(parent, parent.name, args);
     }
 }

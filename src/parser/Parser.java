@@ -7,11 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parser Descendente Recursivo para construção de Árvore Sintática Abstrata (AST)
+ * Parser Descendente Recursivo para construção de Árvore Sintática Abstrata
+ * (AST)
  * com suporte a Programação Orientada a Objetos.
  * <p>
- * Responsável por analisar uma lista de tokens e construir a estrutura sintática
- * correspondente ao código-fonte, incluindo suporte a classes, funções, variáveis,
+ * Responsável por analisar uma lista de tokens e construir a estrutura
+ * sintática
+ * correspondente ao código-fonte, incluindo suporte a classes, funções,
+ * variáveis,
  * blocos sequenciais e paralelos, expressões e instruções de controle de fluxo.
  */
 public class Parser {
@@ -53,7 +56,8 @@ public class Parser {
 
     /**
      * Realiza o parsing de uma declaração.
-     * Pode ser uma declaração de instância, classe, função, variável ou uma instrução.
+     * Pode ser uma declaração de instância, classe, função, variável ou uma
+     * instrução.
      *
      * @return ASTNode representando a declaração encontrada.
      */
@@ -144,17 +148,22 @@ public class Parser {
      * Forma aceita: <NomeDaClasse> ( ... ) { ... }
      */
     private boolean isConstructorStart(String className) {
-        if (isAtEnd()) return false;
+        if (isAtEnd())
+            return false;
         Token t0 = peek();
-        if (t0.type() != TokenType.ID) return false;
-        if (!t0.lexeme().equals(className)) return false;
-        if (current + 1 >= tokens.size()) return false;
+        if (t0.type() != TokenType.ID)
+            return false;
+        if (!t0.lexeme().equals(className))
+            return false;
+        if (current + 1 >= tokens.size())
+            return false;
         return tokens.get(current + 1).type() == TokenType.LEFT_PAREN;
     }
 
     /**
      * Realiza o parsing de um construtor: <NomeClasse>(params) { corpo }
-     * Representado como MethodDecl com returnType = <NomeClasse> e name = <NomeClasse>
+     * Representado como MethodDecl com returnType = <NomeClasse> e name =
+     * <NomeClasse>
      */
     private MethodDecl constructorDeclaration(String className) {
         // Consome o nome da classe já verificado
@@ -238,7 +247,8 @@ public class Parser {
 
     /** Consome um token de tipo embutido ou um identificador (tipo customizado). */
     private Token consumeTypeTokenOrId(String message) {
-        if (isAtEnd()) throw error(peek(), message);
+        if (isAtEnd())
+            throw error(peek(), message);
         Token t = peek();
         if (isTypeTokenOrId(t.type())) {
             return advance();
@@ -300,17 +310,28 @@ public class Parser {
      * @return ASTNode da instrução.
      */
     private ASTNode statement() {
-        if (match(TokenType.IF)) return ifStatement();
-        if (match(TokenType.WHILE)) return whileStatement();
-        if (match(TokenType.DO)) return doWhileStatement();
-        if (match(TokenType.FOR)) return forStatement();
-        if (match(TokenType.PRINT)) return printStatement(false);
-        if (match(TokenType.PRINTLN)) return printStatement(true);
-        if (match(TokenType.RETURN)) return returnStatement();
-        if (match(TokenType.BREAK)) return new BreakStmt();
-        if (match(TokenType.CONTINUE)) return new ContinueStmt();
-        if (match(TokenType.SEQ)) return seqBlock();
-        if (match(TokenType.PAR)) return parBlock();
+        if (match(TokenType.IF))
+            return ifStatement();
+        if (match(TokenType.WHILE))
+            return whileStatement();
+        if (match(TokenType.DO))
+            return doWhileStatement();
+        if (match(TokenType.FOR))
+            return forStatement();
+        if (match(TokenType.PRINT))
+            return printStatement(false);
+        if (match(TokenType.PRINTLN))
+            return printStatement(true);
+        if (match(TokenType.RETURN))
+            return returnStatement();
+        if (match(TokenType.BREAK))
+            return new BreakStmt();
+        if (match(TokenType.CONTINUE))
+            return new ContinueStmt();
+        if (match(TokenType.SEQ))
+            return seqBlock();
+        if (match(TokenType.PAR))
+            return parBlock();
         if (match(TokenType.LEFT_BRACE)) {
             List<ASTNode> stmts = block();
             consume(TokenType.RIGHT_BRACE, "Esperado '}' após bloco");
@@ -661,7 +682,8 @@ public class Parser {
                 if (match(TokenType.ID, TokenType.SEND, TokenType.RECEIVE)) {
                     name = previous();
                 } else {
-                    throw error(peek(), "Esperado nome do método/propriedade após '.' (encontrado: '" + peek().lexeme() + "')");
+                    throw error(peek(),
+                            "Esperado nome do método/propriedade após '.' (encontrado: '" + peek().lexeme() + "')");
                 }
                 // send/receive como nós específicos
                 if (name.lexeme().equals("send") || name.lexeme().equals("receive")) {
@@ -745,6 +767,14 @@ public class Parser {
 
         if (match(TokenType.THIS)) {
             return new ThisExpr();
+        }
+
+        if (match(TokenType.SUPER)) {
+            // Suporta apenas chamada de construtor da superclasse: super(args)
+            consume(TokenType.LEFT_PAREN, "Esperado '(' após 'super'");
+            List<ASTNode> args = arguments();
+            consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos de 'super'");
+            return new SuperCall(args);
         }
 
         if (match(TokenType.NUMBER)) {
@@ -837,7 +867,8 @@ public class Parser {
     // ===== Métodos auxiliares =====
 
     /**
-     * Verifica se o próximo token corresponde a algum dos tipos informados e avança.
+     * Verifica se o próximo token corresponde a algum dos tipos informados e
+     * avança.
      *
      * @param types Tipos de token a verificar.
      * @return true se algum tipo corresponde, false caso contrário.
@@ -859,7 +890,8 @@ public class Parser {
      * @return true se corresponde, false caso contrário.
      */
     private boolean check(TokenType type) {
-        if (isAtEnd()) return false;
+        if (isAtEnd())
+            return false;
         return peek().type() == type;
     }
 
@@ -873,8 +905,8 @@ public class Parser {
     private boolean checkSequence(TokenType type1, TokenType type2) {
         // Simplificado para refletir o comportamento esperado
         return current + 1 < tokens.size() &&
-               tokens.get(current).type() == TokenType.ID &&
-               tokens.get(current + 1).type() == TokenType.ID;
+                tokens.get(current).type() == TokenType.ID &&
+                tokens.get(current + 1).type() == TokenType.ID;
     }
 
     /**
@@ -884,22 +916,25 @@ public class Parser {
      * @return true se é início de método, false caso contrário.
      */
     private boolean isMethodStart() {
-        if (isAtEnd()) return false;
+        if (isAtEnd())
+            return false;
 
         TokenType currentType = peek().type();
 
-        // Verifica se é um tipo de retorno válido (void, string, number, bool ou ID customizado)
-    boolean isReturnType = currentType == TokenType.TYPE_VOID ||
-        currentType == TokenType.TYPE_STRING ||
-        currentType == TokenType.TYPE_NUMBER ||
-        currentType == TokenType.TYPE_BOOL ||
-        currentType == TokenType.TYPE_LIST ||
-        currentType == TokenType.TYPE_DICT ||
-        currentType == TokenType.ID;
+        // Verifica se é um tipo de retorno válido (void, string, number, bool ou ID
+        // customizado)
+        boolean isReturnType = currentType == TokenType.TYPE_VOID ||
+                currentType == TokenType.TYPE_STRING ||
+                currentType == TokenType.TYPE_NUMBER ||
+                currentType == TokenType.TYPE_BOOL ||
+                currentType == TokenType.TYPE_LIST ||
+                currentType == TokenType.TYPE_DICT ||
+                currentType == TokenType.ID;
 
         // Verifica se o próximo token é um ID (nome do método) e o seguinte é '('
         if (isReturnType && current + 1 < tokens.size()) {
-            if (tokens.get(current + 1).type() != TokenType.ID) return false;
+            if (tokens.get(current + 1).type() != TokenType.ID)
+                return false;
             if (current + 2 < tokens.size()) {
                 return tokens.get(current + 2).type() == TokenType.LEFT_PAREN;
             }
@@ -913,26 +948,34 @@ public class Parser {
      * "<tipo> <identificador> [= ...] ;".
      */
     private boolean isVarDeclStart() {
-        if (isAtEnd()) return false;
+        if (isAtEnd())
+            return false;
         TokenType t0 = peek().type();
-        if (!isTypeTokenOrId(t0)) return false;
-        if (current + 1 >= tokens.size()) return false;
+        if (!isTypeTokenOrId(t0))
+            return false;
+        if (current + 1 >= tokens.size())
+            return false;
         TokenType t1 = tokens.get(current + 1).type();
-        if (t1 != TokenType.ID) return false;
+        if (t1 != TokenType.ID)
+            return false;
         // Heurística: se depois do nome vier '=' ou ';', tratamos como declaração
         if (current + 2 < tokens.size()) {
             TokenType t2 = tokens.get(current + 2).type();
-            if (t2 == TokenType.EQUAL || t2 == TokenType.SEMICOLON) return true;
+            if (t2 == TokenType.EQUAL || t2 == TokenType.SEMICOLON)
+                return true;
         }
         return false;
     }
 
-    /** Verifica se é um token de tipo embutido ou um identificador (tipo customizado). */
+    /**
+     * Verifica se é um token de tipo embutido ou um identificador (tipo
+     * customizado).
+     */
     private boolean isTypeTokenOrId(TokenType tt) {
         return tt == TokenType.TYPE_NUMBER || tt == TokenType.TYPE_STRING ||
-               tt == TokenType.TYPE_BOOL   || tt == TokenType.TYPE_VOID   ||
-               tt == TokenType.TYPE_LIST   || tt == TokenType.TYPE_DICT   ||
-               tt == TokenType.ID;
+                tt == TokenType.TYPE_BOOL || tt == TokenType.TYPE_VOID ||
+                tt == TokenType.TYPE_LIST || tt == TokenType.TYPE_DICT ||
+                tt == TokenType.ID;
     }
 
     /**
@@ -941,7 +984,8 @@ public class Parser {
      * @return Token anterior ao avanço.
      */
     private Token advance() {
-        if (!isAtEnd()) current++;
+        if (!isAtEnd())
+            current++;
         return previous();
     }
 
@@ -981,7 +1025,8 @@ public class Parser {
      * @throws ParseException se o tipo não corresponder.
      */
     private Token consume(TokenType type, String message) {
-        if (check(type)) return advance();
+        if (check(type))
+            return advance();
         throw error(peek(), message);
     }
 
@@ -1006,7 +1051,8 @@ public class Parser {
         advance();
 
         while (!isAtEnd()) {
-            if (previous().type() == TokenType.NEWLINE) return;
+            if (previous().type() == TokenType.NEWLINE)
+                return;
 
             switch (peek().type()) {
                 case CLASS:
@@ -1040,6 +1086,7 @@ class ParseException extends RuntimeException {
 // Classe para representar declaração de canal
 class CanalDecl extends ASTNode {
     public final List<String> nomes;
+
     public CanalDecl(List<String> nomes) {
         this.nomes = nomes;
     }
