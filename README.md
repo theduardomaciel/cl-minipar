@@ -75,12 +75,12 @@ Execute em modo interativo (REPL):
 java -cp out Main
 ```
 
-Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/` e `tests_experimental/`):
+Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/` e `tests_simple/`):
 
 ```bash
 java -cp out Main tests/teste1_calculadora.minipar
 # ou
-java -cp out Main tests_experimental/teste5_recomendacao.minipar
+java -cp out Main tests_simple/teste5_recomendacao.minipar
 ```
 
 ### Saída esperada

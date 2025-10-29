@@ -3,6 +3,8 @@ import lexer.Token;
 import lexer.TokenType;
 import parser.Parser;
 import parser.ASTNode;
+import parser.Program;
+import parser.Interpreter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,9 +85,9 @@ public class Main {
      * Executa as fases de análise léxica e sintática
      */
     private static void run(String source, String sourceName) {
-        System.out.println("\n" + "─".repeat(70));
-        System.out.println("📄 Analisando: " + sourceName);
-        System.out.println("─".repeat(70));
+    System.out.println("\n" + "─".repeat(70));
+    System.out.println("📄 Analisando/Executando: " + sourceName);
+    System.out.println("─".repeat(70));
 
         // ===== FASE 1: ANÁLISE LÉXICA =====
         System.out.println("\n🔍 FASE 1: ANÁLISE LÉXICA (LEXER)");
@@ -113,12 +115,14 @@ public class Main {
 
         try {
             Parser parser = new Parser(tokens);
-            ASTNode ast = parser.parse();
+            Program ast = parser.parse();
 
             System.out.println("✅ Análise sintática concluída com sucesso!");
-            System.out.println("\n📊 Árvore Sintática Abstrata (AST):");
+            System.out.println("\n▶️  FASE 3: EXECUÇÃO (INTERPRETER)");
             System.out.println("─".repeat(70));
-            printAST(ast, 0);
+
+            Interpreter interpreter = new Interpreter();
+            interpreter.execute(ast);
 
         } catch (Exception e) {
             System.err.println("❌ Erro na análise sintática:");
