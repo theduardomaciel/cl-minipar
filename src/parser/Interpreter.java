@@ -149,44 +149,30 @@ public class Interpreter {
             String comp1 = c.nomes.get(1);
             String comp2 = c.nomes.get(2);
             
+            // Pergunta ao usuário se este processo é servidor ou cliente
+            System.out.println("\n[Configuração do Canal TCP '" + canalName + "']");
+            System.out.println("Este processo é (1) Servidor ou (2) Cliente?");
+            System.out.print("Digite 1 ou 2: ");
+            
             try {
-                TCPChannel tcpChannel;
+                String resposta = reader.readLine().trim();
+                boolean isServer = resposta.equals("1");
                 
-                // Se há callback (interface web), usa ele
-                if (inputCallback != null) {
-                    InputCallback.TCPChannelConfig config = inputCallback.requestTCPConfig(canalName, comp1, comp2);
-                    
-                    if (config.isServer) {
-                        tcpChannel = new TCPChannel(canalName, config.port, true);
-                        tcpChannel.start(null);
-                    } else {
-                        tcpChannel = new TCPChannel(canalName, config.port, false);
-                        tcpChannel.start(config.host);
-                    }
+                TCPChannel tcpChannel;
+                if (isServer) {
+                    // Servidor: escuta em uma porta
+                    System.out.print("Digite a porta para escutar (ex: 8080): ");
+                    int port = Integer.parseInt(reader.readLine().trim());
+                    tcpChannel = new TCPChannel(canalName, port, true);
+                    tcpChannel.start(null);
                 } else {
-                    // Console: pergunta ao usuário se este processo é servidor ou cliente
-                    System.out.println("\n[Configuração do Canal TCP '" + canalName + "']");
-                    System.out.println("Este processo é (1) Servidor ou (2) Cliente?");
-                    System.out.print("Digite 1 ou 2: ");
-                    
-                    String resposta = reader.readLine().trim();
-                    boolean isServer = resposta.equals("1");
-                    
-                    if (isServer) {
-                        // Servidor: escuta em uma porta
-                        System.out.print("Digite a porta para escutar (ex: 8080): ");
-                        int port = Integer.parseInt(reader.readLine().trim());
-                        tcpChannel = new TCPChannel(canalName, port, true);
-                        tcpChannel.start(null);
-                    } else {
-                        // Cliente: conecta ao servidor
-                        System.out.print("Digite o host do servidor (ex: localhost): ");
-                        String host = reader.readLine().trim();
-                        System.out.print("Digite a porta do servidor: ");
-                        int port = Integer.parseInt(reader.readLine().trim());
-                        tcpChannel = new TCPChannel(canalName, port, false);
-                        tcpChannel.start(host);
-                    }
+                    // Cliente: conecta ao servidor
+                    System.out.print("Digite o host do servidor (ex: localhost): ");
+                    String host = reader.readLine().trim();
+                    System.out.print("Digite a porta do servidor: ");
+                    int port = Integer.parseInt(reader.readLine().trim());
+                    tcpChannel = new TCPChannel(canalName, port, false);
+                    tcpChannel.start(host);
                 }
                 
                 getEnv().define(canalName, tcpChannel);

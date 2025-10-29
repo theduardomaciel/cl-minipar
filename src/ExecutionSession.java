@@ -1,5 +1,4 @@
 import parser.*;
-import parser.InputCallback.TCPChannelConfig;
 import lexer.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -15,15 +14,12 @@ public class ExecutionSession {
     private final String sessionId;
     private final String code;
     private final BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<TCPChannelConfig> tcpConfigQueue = new LinkedBlockingQueue<>();
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean running = false;
     private volatile boolean waitingForInput = false;
-    private volatile boolean waitingForTCPConfig = false;
     private volatile String currentPrompt = "";
-    private volatile String currentTCPConfigInfo = "";
     private Future<?> executionFuture;
     
     public ExecutionSession(String code) {
@@ -43,16 +39,8 @@ public class ExecutionSession {
         return waitingForInput;
     }
     
-    public boolean isWaitingForTCPConfig() {
-        return waitingForTCPConfig;
-    }
-    
     public String getCurrentPrompt() {
         return currentPrompt;
-    }
-    
-    public String getCurrentTCPConfigInfo() {
-        return currentTCPConfigInfo;
     }
     
     public String getOutput() {
@@ -110,16 +98,6 @@ public class ExecutionSession {
                             throw new Exception("Entrada inválida: esperado um número");
                         }
                     }
-                    
-                    @Override
-                    public TCPChannelConfig requestTCPConfig(String canalName, String comp1, String comp2) throws Exception {
-                        waitingForTCPConfig = true;
-                        currentTCPConfigInfo = String.format("canal=%s,comp1=%s,comp2=%s", canalName, comp1, comp2);
-                        TCPChannelConfig config = tcpConfigQueue.take(); // Bloqueia até receber configuração
-                        waitingForTCPConfig = false;
-                        currentTCPConfigInfo = "";
-                        return config;
-                    }
                 });
                 
                 interpreter.execute(program);
@@ -137,7 +115,6 @@ public class ExecutionSession {
                 System.setErr(originalErr);
                 running = false;
                 waitingForInput = false;
-                waitingForTCPConfig = false;
             }
         });
     }
@@ -147,13 +124,6 @@ public class ExecutionSession {
      */
     public void provideInput(String input) {
         inputQueue.offer(input);
-    }
-    
-    /**
-     * Fornece configuração de canal TCP para o programa em execução
-     */
-    public void provideTCPConfig(boolean isServer, String host, int port) {
-        tcpConfigQueue.offer(new TCPChannelConfig(isServer, host, port));
     }
     
     /**
