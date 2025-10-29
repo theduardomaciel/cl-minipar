@@ -619,7 +619,8 @@ public class Interpreter {
         if (v == null) return "null";
         if (v instanceof Double d) {
             if (d % 1 == 0) return String.valueOf(d.longValue());
-            return d.toString();
+            // return d.toString();  // Retornava notação científica para números pequenos
+            return String.format("%.4f", d);
         }
         if (v instanceof Integer i) return i.toString();
         if (v instanceof Boolean b) return b.toString();

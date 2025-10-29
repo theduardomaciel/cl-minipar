@@ -29,7 +29,7 @@ class Neuronio {
         print("Entrada: ");
         print(this.input_val);
         print(" | Saída desejada: ");
-        print(this.output_desejado);
+        println(this.output_desejado);
         
         number iteracao = 1;
         number max_iteracoes = 100;
@@ -37,40 +37,40 @@ class Neuronio {
         
         while (iteracao <= max_iteracoes && !aprendeu) {
             print("#### Iteração: ");
-            print(iteracao);
+            println(iteracao);
             
             # Calcular saída
             number soma = (this.input_val * this.peso) + this.peso_bias;
             number saida = this.ativacao(soma);
             
             print("Peso: ");
-            print(this.peso);
+            println(this.peso);
             print("Saída: ");
-            print(saida);
+            println(saida);
             
             # Calcular erro
             number erro = this.output_desejado - saida;
             print("Erro: ");
-            print(erro);
+            println(erro);
+
+            print("Peso do bias: ");
+            println(this.peso_bias);
             
             # Verificar se aprendeu
             if (erro == 0) {
                 aprendeu = true;
-                print("Parabéns! O neurônio aprendeu.");
+                println("✅ Parabéns! O neurônio aprendeu.");
             } else {
                 # Ajustar pesos
                 this.peso = this.peso + (this.taxa_aprendizado * erro * this.input_val);
                 this.peso_bias = this.peso_bias + (this.taxa_aprendizado * erro);
             }
             
-            print("Peso do bias: ");
-            print(this.peso_bias);
-            
             iteracao = iteracao + 1;
         }
         
         print("Valor desejado: ");
-        print(this.output_desejado);
+        println(this.output_desejado);
     }
 }
 
