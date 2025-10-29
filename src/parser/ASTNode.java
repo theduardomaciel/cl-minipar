@@ -716,6 +716,32 @@ class InputExpr extends ASTNode {
 }
 
 /**
+ * Expressão de leitura de linha: readln()
+ */
+class ReadlnExpr extends ASTNode {
+    public ReadlnExpr() {
+    }
+
+    @Override
+    public String toString() {
+        return "Readln()";
+    }
+}
+
+/**
+ * Expressão de leitura de número: readNumber()
+ */
+class ReadNumberExpr extends ASTNode {
+    public ReadNumberExpr() {
+    }
+
+    @Override
+    public String toString() {
+        return "ReadNumber()";
+    }
+}
+
+/**
  * Envio via canal: canal.send(...)
  */
 class SendStmt extends ASTNode {

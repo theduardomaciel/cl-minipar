@@ -23,7 +23,7 @@
                     <h2>📝 Editor de Código</h2>
                     <div class="controls">
                         <button id="loadExample" class="btn btn-secondary">
-                            📚 Carregar Exemplo
+                            📚 Exemplos
                         </button>
                         <button id="clearCode" class="btn btn-secondary">
                             🗑️ Limpar
@@ -43,7 +43,13 @@
                         🗑️ Limpar Saída
                     </button>
                 </div>
-                <div id="output" class="output-box"></div>
+                <div class="output-container">
+                    <div id="output" class="output-box"></div>
+                    <div id="inputContainer" class="input-container hidden">
+                        <span class="input-prompt">></span>
+                        <input type="text" id="userInput" class="terminal-input" placeholder="Digite sua entrada...">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -74,6 +80,9 @@
                     </button>
                     <button class="example-btn" data-example="parallel">
                         ⚡ Blocos Paralelos
+                    </button>
+                    <button class="example-btn" data-example="input">
+                        ⌨️ Entrada de Dados (Input)
                     </button>
                 </div>
             </div>

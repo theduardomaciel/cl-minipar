@@ -1,12 +1,17 @@
 // Aplicação principal do interpretador MiniPar Web
 let editor;
 const API_URL = 'http://localhost:8080';
+let inputQueue = [];
+let waitingForInput = false;
+let currentSessionId = null;
+let pollingInterval = null;
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function () {
     initializeEditor();
     setupEventListeners();
     loadInitialExample();
+    setupTerminalInput();
 });
 
 /**
@@ -112,6 +117,108 @@ function clearOutput() {
     const outputDiv = document.getElementById('output');
     outputDiv.textContent = '';
     outputDiv.classList.add('empty');
+    hideInputField();
+    inputQueue = [];
+    waitingForInput = false;
+}
+
+/**
+ * Configura o campo de input do terminal
+ */
+function setupTerminalInput() {
+    const userInput = document.getElementById('userInput');
+    const inputContainer = document.getElementById('inputContainer');
+
+    userInput.addEventListener('keypress', async function (e) {
+        if (e.key === 'Enter') {
+            const value = userInput.value;
+
+            // Adiciona à saída visual
+            appendToOutput(`> ${value}`, 'user-input-echo');
+
+            // Limpa o campo
+            userInput.value = '';
+
+            // Esconde o campo de input
+            hideInputField();
+            waitingForInput = false;
+
+            // Envia input para o servidor
+            if (currentSessionId) {
+                try {
+                    await fetch(`${API_URL}/session/input`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json; charset=utf-8'
+                        },
+                        body: JSON.stringify({
+                            sessionId: currentSessionId,
+                            input: value
+                        })
+                    });
+                } catch (error) {
+                    console.error('Erro ao enviar input:', error);
+                    appendToOutput('Erro ao enviar input: ' + error.message, 'output-error');
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Mostra o campo de input
+ */
+function showInputField(prompt = '') {
+    const inputContainer = document.getElementById('inputContainer');
+    const userInput = document.getElementById('userInput');
+
+    if (prompt) {
+        appendToOutput(prompt, 'input-line');
+    }
+
+    inputContainer.classList.remove('hidden');
+    userInput.focus();
+    waitingForInput = true;
+}
+
+/**
+ * Esconde o campo de input
+ */
+function hideInputField() {
+    const inputContainer = document.getElementById('inputContainer');
+    inputContainer.classList.add('hidden');
+}
+
+/**
+ * Adiciona texto à saída
+ */
+function appendToOutput(text, className = '') {
+    const outputDiv = document.getElementById('output');
+    outputDiv.classList.remove('empty');
+
+    const line = document.createElement('div');
+    line.className = className;
+    line.textContent = text;
+    outputDiv.appendChild(line);
+
+    // Auto-scroll para o final
+    outputDiv.scrollTop = outputDiv.scrollHeight;
+}
+
+/**
+ * Aguarda por input do usuário
+ */
+async function waitForUserInput(prompt = '') {
+    return new Promise((resolve) => {
+        showInputField(prompt);
+
+        const checkInput = setInterval(() => {
+            if (inputQueue.length > 0) {
+                clearInterval(checkInput);
+                resolve(inputQueue.shift());
+            }
+        }, 100);
+    });
 }
 
 /**
@@ -137,7 +244,8 @@ async function runCode() {
     outputDiv.classList.remove('empty');
 
     try {
-        const response = await fetch(`${API_URL}/execute`, {
+        // Iniciar sessão de execução interativa
+        const startResponse = await fetch(`${API_URL}/session/start`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'text/plain; charset=utf-8'
@@ -145,18 +253,15 @@ async function runCode() {
             body: code
         });
 
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        if (!startResponse.ok) {
+            throw new Error(`Erro HTTP: ${startResponse.status}`);
         }
 
-        const result = await response.json();
+        const startResult = await startResponse.json();
+        currentSessionId = startResult.sessionId;
 
-        if (result.success) {
-            showOutput(result.output || 'Execução concluída sem saída.', 'success');
-        } else {
-            const fullError = (result.output ? result.output + '\n\n' : '') + result.error;
-            showOutput(fullError || 'Erro desconhecido durante a execução.', 'error');
-        }
+        // Iniciar polling para verificar status
+        startPolling();
 
     } catch (error) {
         showOutput(
@@ -164,11 +269,72 @@ async function runCode() {
             `Verifique se o servidor está rodando em ${API_URL}`,
             'error'
         );
-    } finally {
-        // Reabilitar botão
         runButton.disabled = false;
         runButton.innerHTML = '▶️ Executar';
     }
+}
+
+/**
+ * Inicia o polling para verificar status da execução
+ */
+function startPolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+    }
+
+    pollingInterval = setInterval(async () => {
+        try {
+            const response = await fetch(`${API_URL}/session/status?sessionId=${currentSessionId}`);
+
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+
+            const status = await response.json();
+
+            // Atualizar saída
+            if (status.output) {
+                showOutput(status.output, status.error ? 'error' : 'normal');
+            }
+
+            // Verificar se está aguardando input
+            if (status.waitingForInput && !waitingForInput) {
+                showInputField();
+            }
+
+            // Verificar se terminou
+            if (!status.running) {
+                stopPolling();
+
+                const runButton = document.getElementById('runCode');
+                runButton.disabled = false;
+                runButton.innerHTML = '▶️ Executar';
+
+                if (status.error) {
+                    appendToOutput('\n' + status.error, 'output-error');
+                }
+            }
+
+        } catch (error) {
+            console.error('Erro no polling:', error);
+            stopPolling();
+
+            const runButton = document.getElementById('runCode');
+            runButton.disabled = false;
+            runButton.innerHTML = '▶️ Executar';
+        }
+    }, 200); // Poll a cada 200ms
+}
+
+/**
+ * Para o polling
+ */
+function stopPolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+    currentSessionId = null;
 }
 
 /**

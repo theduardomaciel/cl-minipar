@@ -13,6 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
  */
 public class WebServer {
     private static final int PORT = 8080;
+    private static final Map<String, ExecutionSession> sessions = new ConcurrentHashMap<>();
     
     /**
      * Encontra o diretório web, verificando se estamos em build/ ou na raiz
@@ -50,6 +54,11 @@ public class WebServer {
         
         // Endpoint para executar código MiniPar
         server.createContext("/execute", new ExecuteHandler());
+        
+        // Endpoints para execução com input interativo
+        server.createContext("/session/start", new StartSessionHandler());
+        server.createContext("/session/status", new SessionStatusHandler());
+        server.createContext("/session/input", new ProvideInputHandler());
         
         server.setExecutor(null); // usa executor padrão
         server.start();
@@ -251,6 +260,220 @@ public class WebServer {
             this.success = success;
             this.output = output;
             this.error = error;
+        }
+    }
+    
+    /**
+     * Handler para iniciar uma sessão de execução interativa
+     */
+    static class StartSessionHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            
+            // Ler o código do corpo da requisição
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
+            BufferedReader br = new BufferedReader(isr);
+            String code = br.lines().collect(Collectors.joining("\n"));
+            
+            // Criar e iniciar sessão
+            ExecutionSession session = new ExecutionSession(code);
+            sessions.put(session.getSessionId(), session);
+            session.start();
+            
+            // Retornar ID da sessão
+            String jsonResponse = String.format(
+                "{\"sessionId\": \"%s\"}",
+                session.getSessionId()
+            );
+            
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(200, response.length);
+            
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
+        }
+    }
+    
+    /**
+     * Handler para verificar o status de uma sessão
+     */
+    static class SessionStatusHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            
+            // Obter sessionId da query string
+            String query = exchange.getRequestURI().getQuery();
+            String sessionId = null;
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    String[] pair = param.split("=");
+                    if (pair.length == 2 && pair[0].equals("sessionId")) {
+                        sessionId = pair[1];
+                        break;
+                    }
+                }
+            }
+            
+            if (sessionId == null) {
+                sendError(exchange, "sessionId não fornecido");
+                return;
+            }
+            
+            ExecutionSession session = sessions.get(sessionId);
+            if (session == null) {
+                sendError(exchange, "Sessão não encontrada");
+                return;
+            }
+            
+            // Construir resposta com status da sessão
+            String jsonResponse = String.format(
+                "{\"running\": %s, \"waitingForInput\": %s, \"output\": %s, \"error\": %s}",
+                session.isRunning(),
+                session.isWaitingForInput(),
+                escapeJson(session.getOutput()),
+                escapeJson(session.getError())
+            );
+            
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(200, response.length);
+            
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
+            
+            // Limpar sessão se não está mais rodando
+            if (!session.isRunning()) {
+                sessions.remove(sessionId);
+            }
+        }
+        
+        private String escapeJson(String str) {
+            if (str == null || str.isEmpty()) {
+                return "\"\"";
+            }
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("\"");
+            
+            for (char c : str.toCharArray()) {
+                switch (c) {
+                    case '"': sb.append("\\\""); break;
+                    case '\\': sb.append("\\\\"); break;
+                    case '\b': sb.append("\\b"); break;
+                    case '\f': sb.append("\\f"); break;
+                    case '\n': sb.append("\\n"); break;
+                    case '\r': sb.append("\\r"); break;
+                    case '\t': sb.append("\\t"); break;
+                    default:
+                        if (c < ' ') {
+                            sb.append(String.format("\\u%04x", (int) c));
+                        } else {
+                            sb.append(c);
+                        }
+                }
+            }
+            
+            sb.append("\"");
+            return sb.toString();
+        }
+        
+        private void sendError(HttpExchange exchange, String message) throws IOException {
+            String jsonResponse = String.format("{\"error\": \"%s\"}", message);
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(400, response.length);
+            
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
+        }
+    }
+    
+    /**
+     * Handler para fornecer input para uma sessão em execução
+     */
+    static class ProvideInputHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            
+            // Ler JSON do corpo da requisição
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
+            BufferedReader br = new BufferedReader(isr);
+            String body = br.lines().collect(Collectors.joining("\n"));
+            
+            // Parse simples do JSON
+            String sessionId = extractJsonField(body, "sessionId");
+            String input = extractJsonField(body, "input");
+            
+            if (sessionId == null || input == null) {
+                sendError(exchange, "sessionId e input são obrigatórios");
+                return;
+            }
+            
+            ExecutionSession session = sessions.get(sessionId);
+            if (session == null) {
+                sendError(exchange, "Sessão não encontrada");
+                return;
+            }
+            
+            // Fornecer input para a sessão
+            session.provideInput(input);
+            
+            // Retornar sucesso
+            String jsonResponse = "{\"success\": true}";
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(200, response.length);
+            
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
+        }
+        
+        private String extractJsonField(String json, String field) {
+            String pattern = "\"" + field + "\"\\s*:\\s*\"([^\"]+)\"";
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
+            java.util.regex.Matcher m = p.matcher(json);
+            if (m.find()) {
+                return m.group(1);
+            }
+            return null;
+        }
+        
+        private void sendError(HttpExchange exchange, String message) throws IOException {
+            String jsonResponse = String.format("{\"error\": \"%s\"}", message);
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(400, response.length);
+            
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
         }
     }
 }

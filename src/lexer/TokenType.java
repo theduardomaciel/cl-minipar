@@ -18,6 +18,8 @@ public enum TokenType {
     PRINT,       // Saída (sem quebra de linha)
     PRINTLN,     // Saída (com quebra de linha)
     INPUT,       // Entrada
+    READLN,      // Leitura de linha (string)
+    READNUMBER,  // Leitura de número
     IF,          // Estrutura condicional
     ELSE,        // Alternativa condicional
     WHILE,       // Estrutura de repetição

@@ -772,6 +772,20 @@ public class Parser {
             return new InputExpr(prompt);
         }
 
+        if (match(TokenType.READLN)) {
+            // readln()
+            consume(TokenType.LEFT_PAREN, "Esperado '(' após 'readln'");
+            consume(TokenType.RIGHT_PAREN, "Esperado ')' após 'readln'");
+            return new ReadlnExpr();
+        }
+
+        if (match(TokenType.READNUMBER)) {
+            // readNumber()
+            consume(TokenType.LEFT_PAREN, "Esperado '(' após 'readNumber'");
+            consume(TokenType.RIGHT_PAREN, "Esperado ')' após 'readNumber'");
+            return new ReadNumberExpr();
+        }
+
         if (match(TokenType.NEW)) {
             Token className = consume(TokenType.ID, "Esperado nome da classe após 'new'");
             consume(TokenType.LEFT_PAREN, "Esperado '(' após nome da classe");

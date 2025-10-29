@@ -77,6 +77,13 @@ header p {
     flex-direction: column;
 }
 
+.output-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 .section-header {
     padding: 15px 20px;
     background: var(--light-bg);
@@ -148,6 +155,7 @@ header p {
     overflow-y: auto;
     white-space: pre-wrap;
     word-wrap: break-word;
+    min-height: 200px;
 }
 
 .output-box.empty {
@@ -292,4 +300,57 @@ footer {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--light-bg);
+}
+
+/* Terminal Input */
+.input-container {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--light-bg);
+    border-top: 1px solid var(--border-color);
+    gap: 10px;
+}
+
+.input-container.hidden {
+    display: none;
+}
+
+.input-prompt {
+    color: var(--primary-color);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.terminal-input {
+    flex: 1;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.terminal-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.terminal-input::placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.input-line {
+    color: var(--secondary-color);
+}
+
+.user-input-echo {
+    color: var(--text-color);
+    font-weight: 600;
 }

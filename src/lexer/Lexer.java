@@ -39,6 +39,8 @@ public class Lexer {
         keywords.put("print", TokenType.PRINT);
         keywords.put("println", TokenType.PRINTLN);
         keywords.put("input", TokenType.INPUT);
+        keywords.put("readln", TokenType.READLN);
+        keywords.put("readNumber", TokenType.READNUMBER);
         keywords.put("if", TokenType.IF);
         keywords.put("else", TokenType.ELSE);
         keywords.put("while", TokenType.WHILE);

@@ -46,7 +46,7 @@ class Pessoa {
     string nome;
     number idade;
     
-    void inicializar(string n, number i) {
+    Pessoa(string n, number i) {
         this.nome = n;
         this.idade = i;
     }
@@ -60,7 +60,8 @@ class Pessoa {
 class Estudante extends Pessoa {
     string curso;
     
-    void definirCurso(string c) {
+    Estudante(string n, number i, string c) {
+        super(n, i);
         this.curso = c;
     }
     
@@ -70,15 +71,12 @@ class Estudante extends Pessoa {
     }
 }
 
-Pessoa p = new Pessoa();
-p.inicializar("João", 25);
+Pessoa p = new Pessoa("João", 25);
 p.apresentar();
 
 println("---");
 
-Estudante e = new Estudante();
-e.inicializar("Maria", 20);
-e.definirCurso("Ciência da Computação");
+Estudante e = new Estudante("Maria", 20, "Ciência da Computação");
 e.mostrarInfo();`,
 
     loop: `# Exemplo: Loops
@@ -87,14 +85,14 @@ for (number i in [1, 2, 3, 4, 5]) {
     println("Número: ", i);
 }
 
-println("\n=== While Loop ===");
+println("=== While Loop ===");
 number contador = 1;
 while (contador <= 5) {
     println("Contador: ", contador);
     contador = contador + 1;
 }
 
-println("\n=== Do-While Loop ===");
+println("=== Do-While Loop ===");
 number x = 1;
 do {
     println("x = ", x);
@@ -110,7 +108,7 @@ list frutas = ["maçã", "banana", "laranja"];
 println("Frutas: ", frutas);
 
 # Iterando sobre lista
-println("\nIterando sobre frutas:");
+println("Iterando sobre frutas:");
 for (string fruta in frutas) {
     println("- ", fruta);
 }
@@ -121,7 +119,7 @@ dict pessoa = {
     "idade": 30,
     "cidade": "São Paulo"
 };
-println("\nDicionário pessoa: ", pessoa);`,
+println("Dicionário pessoa: ", pessoa);`,
 
     parallel: `# Exemplo: Blocos Paralelos e Sequenciais
 println("=== Bloco Sequencial ===");
@@ -131,14 +129,38 @@ seq {
     println("Tarefa 3");
 }
 
-println("\n=== Bloco Paralelo ===");
+println("=== Bloco Paralelo ===");
 par {
     println("Processo A");
     println("Processo B");
     println("Processo C");
 }
 
-println("\nFim da execução");`
+println("Fim da execução");`,
+
+    input: `# Exemplo: Entrada de Dados (Input Interativo)
+# Use readln() para ler strings e readNumber() para números
+
+println("=== Sistema de Cadastro ===");
+println("Digite seu nome:");
+string nome = readln();
+
+println("Digite sua idade:");
+number idade = readNumber();
+
+println("Digite sua cidade:");
+string cidade = readln();
+
+println("");
+println("✅ Dados cadastrados com sucesso!");
+println("");
+println("--- RESUMO ---");
+println("Nome: ", nome);
+println("Idade: ", idade);
+println("Cidade: ", cidade);
+
+number anoNascimento = 2025 - idade;
+println("Ano de nascimento aproximado: ", anoNascimento);`
 };
 
 // Função para obter um exemplo

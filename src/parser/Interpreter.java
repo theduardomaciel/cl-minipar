@@ -25,6 +25,9 @@ public class Interpreter {
     private final ThreadLocal<Environment> threadEnv = ThreadLocal.withInitial(() -> globals);
     private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
+    // Callback para entrada de dados (usado pela interface web)
+    private InputCallback inputCallback = null;
+
     // Built-ins de função: nome -> invocador
     private final Map<String, Builtin> builtins = new HashMap<>();
 
@@ -59,6 +62,14 @@ public class Interpreter {
     
     private void setEnv(Environment e) {
         threadEnv.set(e);
+    }
+
+    /**
+     * Define o callback para entrada de dados.
+     * @param callback Callback para solicitar entrada do usuário
+     */
+    public void setInputCallback(InputCallback callback) {
+        this.inputCallback = callback;
     }
 
     // ===== API =====
@@ -384,6 +395,8 @@ public class Interpreter {
         if (node instanceof IndexExpr ie) return evalIndexExpr(ie);
         if (node instanceof PropertyAccess pa) return evalPropertyAccess(pa);
         if (node instanceof InputExpr in) return evalInput(in);
+        if (node instanceof ReadlnExpr) return evalReadln();
+        if (node instanceof ReadNumberExpr) return evalReadNumber();
         if (node instanceof NewInstance ni) return evalNewInstance(ni);
         if (node instanceof MethodCall mc) return evalMethodCall(mc);
         if (node instanceof FunctionCall fc) return evalFunctionCall(fc);
@@ -497,6 +510,41 @@ public class Interpreter {
             }
         } catch (IOException e) {
             throw new RuntimeException("Erro de leitura de input: " + e.getMessage());
+        }
+    }
+
+    private Object evalReadln() {
+        try {
+            // Se há callback (interface web), usa ele
+            if (inputCallback != null) {
+                return inputCallback.readLine();
+            }
+            // Caso contrário, lê do console
+            String line = reader.readLine();
+            return line != null ? line : "";
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao ler linha: " + e.getMessage());
+        }
+    }
+
+    private Object evalReadNumber() {
+        try {
+            // Se há callback (interface web), usa ele
+            if (inputCallback != null) {
+                return inputCallback.readNumber();
+            }
+            // Caso contrário, lê do console
+            String line = reader.readLine();
+            if (line == null) return 0.0;
+            line = line.trim();
+            if (line.contains(".")) {
+                return Double.parseDouble(line);
+            }
+            return (double) Integer.parseInt(line);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Entrada inválida: esperado um número");
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao ler número: " + e.getMessage());
         }
     }
 

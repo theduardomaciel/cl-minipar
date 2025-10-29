@@ -1,6 +1,18 @@
-# 🚀 Guia Rápido - Interface Web MiniPar
+# 🚀 Guia Completo - Interface Web MiniPar
 
-## Como executar em 3 passos:
+## 📖 Índice
+
+1. [Como Executar](#como-executar)
+2. [Usando a Interface](#usando-a-interface)
+3. [Input Interativo (readln e readNumber)](#input-interativo)
+4. [Arquitetura Técnica](#arquitetura-técnica)
+5. [Exemplos Práticos](#exemplos-práticos)
+6. [Solução de Problemas](#solução-de-problemas)
+7. [Personalização](#personalização)
+
+---
+
+## Como Executar
 
 ### 1️⃣ Compilar o projeto
 
@@ -63,21 +75,22 @@ Abra seu navegador em: **http://localhost:8080**
 
 ---
 
-## 🎯 Usando a Interface
+## Usando a Interface
 
 ### Editor de Código (Esquerda)
 - Digite ou cole seu código MiniPar
-- Use os **exemplos prontos** clicando em "📚 Carregar Exemplo"
+- Use os **exemplos prontos** clicando em "📚 Exemplos"
 - **Syntax highlighting** automático para facilitar a leitura
 
 ### Área de Saída (Direita)
 - Mostra o resultado da execução
 - Exibe erros com destaque em vermelho
 - Saída bem-sucedida em verde
+- **Campo de input interativo** quando `readln()` ou `readNumber()` são chamados
 
 ### Botões Disponíveis
 - **▶️ Executar**: Roda o código (ou use `Ctrl+Enter`)
-- **📚 Carregar Exemplo**: Abre galeria com 7 exemplos
+- **📚 Exemplos**: Abre galeria com vários exemplos
 - **🗑️ Limpar**: Remove o código do editor
 - **🗑️ Limpar Saída**: Limpa a área de resultados
 
@@ -86,9 +99,7 @@ Abra seu navegador em: **http://localhost:8080**
 - `Ctrl+/` ou `Cmd+/`: Comentar/descomentar linha
 - `ESC`: Fechar modal de exemplos
 
----
-
-## 📚 Exemplos Incluídos
+### 📚 Exemplos Incluídos
 
 1. **👋 Hello World** - Primeiro programa
 2. **📦 Variáveis e Operações** - Tipos básicos
@@ -97,10 +108,245 @@ Abra seu navegador em: **http://localhost:8080**
 5. **🔁 Loops** - For, While, Do-While
 6. **📋 Listas e Dicionários** - Estruturas de dados
 7. **⚡ Blocos Paralelos** - Seq e Par
+8. **⌨️ Entrada de Dados (Input)** - readln() e readNumber()
 
 ---
 
-## 🔧 Solução de Problemas
+## Input Interativo
+
+O MiniPar possui **suporte completo** a entrada interativa de dados:
+- ✅ Funções `readln()` e `readNumber()` 
+- ✅ Backend com polling HTTP (200ms)
+- ✅ Frontend com campo de input visual
+- ✅ Execução assíncrona em threads separadas
+- ✅ Gerenciamento de sessões
+- ✅ Interface web responsiva
+
+### 🎮 Como Usar
+
+#### Opção 1: Interface Web (RECOMENDADO)
+
+1. Acesse http://localhost:8080
+2. Clique em "📚 Exemplos"
+3. Selecione "⌨️ Entrada de Dados (Input)"
+4. Clique em "▶️ Executar"
+5. Digite os valores quando solicitado
+6. Pressione Enter para enviar
+
+#### Opção 2: Terminal (Console)
+
+```bash
+cd build
+java Main ../tests/teste_input_interativo.minipar
+
+# Digite os valores quando solicitado
+```
+
+### � Funções Disponíveis
+
+#### `readln()` - Lê uma string
+```minipar
+println("Digite seu nome:");
+string nome = readln();
+println("Olá, ", nome, "!");
+```
+
+#### `readNumber()` - Lê um número
+```minipar
+println("Digite sua idade:");
+number idade = readNumber();
+println("Você tem ", idade, " anos.");
+```
+
+### 🎨 Interface Visual do Input
+
+```
+┌────────────────────────────────────────────┐
+│ Saída do Programa                          │
+│                                            │
+│ Digite seu nome:                           │
+│ > João Silva          ← já enviado         │
+│ Digite sua idade:                          │
+├────────────────────────────────────────────┤
+│ > [____________]      ← aguardando input   │
+│   ↑                                        │
+│   prompt verde                             │
+└────────────────────────────────────────────┘
+```
+
+**Estados Visuais:**
+
+- **Aguardando Input**: Campo visível com border verde ao focar
+- **Após Enviar**: Valor exibido no histórico em dourado/amarelo
+- **Validação**: `readNumber()` valida entrada automaticamente
+
+### 🔍 Fluxo de Execução (Polling)
+
+```
+Usuário clica "Executar"
+    ↓
+Frontend → POST /session/start
+    ↓
+Backend cria ExecutionSession (UUID)
+    ↓
+Frontend inicia polling (200ms)
+    ↓
+GET /session/status?sessionId=xxx
+    ↓
+Programa chama readln()
+    ↓
+waitingForInput = true
+    ↓
+Frontend detecta e exibe campo de input
+    ↓
+Usuário digita e pressiona Enter
+    ↓
+POST /session/input
+    ↓
+Backend desbloqueia thread
+    ↓
+readln() retorna o valor
+    ↓
+Programa continua...
+```
+
+---
+
+## Arquitetura Técnica
+
+### 📊 Backend - Servidor Web
+
+#### Novos Arquivos
+
+**`src/ExecutionSession.java`**
+- Gerencia execução assíncrona
+- `sessionId` único (UUID)
+- `BlockingQueue` para inputs
+- Thread separada para execução
+- Status: running, waitingForInput
+- Captura de output/error
+
+**`src/parser/InputCallback.java`**
+```java
+public interface InputCallback {
+    String readLine() throws Exception;
+    double readNumber() throws Exception;
+}
+```
+
+#### Endpoints Implementados
+
+**POST /session/start**
+- Inicia sessão de execução
+- Retorna sessionId
+- Executa código em background
+
+**GET /session/status?sessionId=xxx**
+```json
+{
+  "running": true/false,
+  "waitingForInput": true/false,
+  "output": "saída atual",
+  "error": "erros se houver"
+}
+```
+
+**POST /session/input**
+```json
+{
+  "sessionId": "xxx",
+  "input": "valor digitado"
+}
+```
+
+### 💻 Frontend - Interface Web
+
+**`web/app.js`** - Implementações principais:
+- `runCode()` - Inicia sessão via POST /session/start
+- `startPolling()` - Poll a cada 200ms para verificar status
+- `setupTerminalInput()` - Gerencia campo de input visual
+- Detecção automática de `waitingForInput`
+- Echo de inputs no histórico
+
+### 🔄 Polling vs WebSocket
+
+**Por que Polling?**
+- ✅ Mais simples de implementar
+- ✅ Não requer dependências externas
+- ✅ Compatível com todos navegadores
+- ✅ Funciona com HttpServer nativo do Java
+- ✅ Suficiente para latência de 200ms (5 verificações/segundo)
+
+### 🔐 Gerenciamento de Sessões
+
+```java
+ConcurrentHashMap<String, ExecutionSession> sessions
+```
+
+- Thread-safe para múltiplos usuários
+- Auto-limpeza quando execução termina
+- SessionId único (UUID)
+- Isolamento completo entre sessões
+
+### 🧵 Bloqueio de Thread
+
+```java
+BlockingQueue<String> inputQueue
+```
+
+Quando `readln()` é chamado:
+1. Thread de execução chama `inputQueue.take()`
+2. Thread **bloqueia** até input chegar
+3. Frontend detecta via polling
+4. Usuário digita e envia
+5. `inputQueue.offer(valor)` desbloqueia
+6. Execução continua
+
+---
+
+## Exemplos Práticos
+
+### 1. Cadastro Simples
+```minipar
+println("Nome:");
+string nome = readln();
+println("Olá, ", nome, "!");
+```
+
+### 2. Calculadora
+```minipar
+println("Digite o primeiro número:");
+number a = readNumber();
+println("Digite o segundo número:");
+number b = readNumber();
+println("Soma: ", a + b);
+```
+
+### 3. Loop com Input
+```minipar
+number soma = 0;
+for (number i in [1, 2, 3]) {
+    println("Digite número ", i, ":");
+    number n = readNumber();
+    soma = soma + n;
+}
+println("Total: ", soma);
+```
+
+### 4. Validação
+```minipar
+println("Digite sua idade:");
+number idade = readNumber();
+while (idade < 0) {
+    println("Idade inválida! Digite novamente:");
+    idade = readNumber();
+}
+println("Idade válida: ", idade);
+```
+
+---
+
+## Solução de Problemas
 
 ### ❌ "404 - Arquivo não encontrado" no navegador
 **Causa:** O servidor não está encontrando a pasta `web/`
@@ -141,9 +387,25 @@ javac -version
 ```
 Versão mínima recomendada: JDK 11 ou superior.
 
+### ❌ Input Inválido (readNumber)
+
+```minipar
+number idade = readNumber();
+# Usuário digita "abc"
+# Erro: "Entrada inválida: esperado um número"
+```
+
+### ❌ Sessão Expirada
+
+```
+Frontend detecta erro 400
+Exibe: "Sessão não encontrada"
+Permite nova execução
+```
+
 ---
 
-## 🎨 Personalização
+## Personalização
 
 ### Mudar o tema do editor
 
@@ -158,20 +420,38 @@ Temas disponíveis: https://codemirror.net/5/theme/
 
 Edite `web/examples.js` e adicione:
 ```javascript
-meuExemplo: `# Seu código aqui
-print("Olá!");`
+meuExemplo: {
+    title: "🎯 Meu Exemplo",
+    code: `# Seu código aqui
+println("Olá!");
+string nome = readln();
+println("Bem-vindo, ", nome, "!");`
+}
 ```
 
 ---
 
-## 📞 Ajuda
+## ✅ Status de Implementação
 
-Se encontrar problemas, verifique:
-1. ✅ Compilação sem erros
-2. ✅ Servidor rodando
-3. ✅ Console do navegador (F12) para erros JavaScript
-4. ✅ Terminal do servidor para logs de execução
+✅ Backend com polling HTTP
+✅ Frontend com interface visual
+✅ `readln()` e `readNumber()` funcionais
+✅ Gerenciamento de sessões
+✅ Execução assíncrona
+✅ Tratamento de erros
+✅ Documentação completa
+✅ Exemplos práticos
+✅ Servidor rodando em http://localhost:8080
 
 ---
 
-**Feito com ❤️ para a disciplina de Compiladores 2025.1 - UFAL**
+## 🚀 Próximas Melhorias (Opcional)
+
+- [ ] WebSocket para latência zero
+- [ ] Histórico de comandos (↑/↓)
+- [ ] Autocomplete
+- [ ] Prompt customizável: `readln("Digite:")`
+- [ ] `readPassword()` com asteriscos
+- [ ] Timeout configurável
+
+**Nota:** O sistema atual com polling funciona perfeitamente para casos de uso interativos normais. WebSocket só seria necessário para aplicações real-time extremas.
