@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniPar - Interpretador Web</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 MiniPar - Interpretador Web</h1>
+            <p>Linguagem de Programação com Orientação a Objetos e Paralelismo</p>
+        </header>
+
+        <div class="main-content">
+            <div class="editor-section">
+                <div class="section-header">
+                    <h2>📝 Editor de Código</h2>
+                    <div class="controls">
+                        <button id="loadExample" class="btn btn-secondary">
+                            📚 Carregar Exemplo
+                        </button>
+                        <button id="clearCode" class="btn btn-secondary">
+                            🗑️ Limpar
+                        </button>
+                        <button id="runCode" class="btn btn-primary">
+                            ▶️ Executar
+                        </button>
+                    </div>
+                </div>
+                <textarea id="codeEditor"></textarea>
+            </div>
+
+            <div class="output-section">
+                <div class="section-header">
+                    <h2>📤 Saída</h2>
+                    <button id="clearOutput" class="btn btn-secondary">
+                        🗑️ Limpar Saída
+                    </button>
+                </div>
+                <div id="output" class="output-box"></div>
+            </div>
+        </div>
+
+        <div class="examples-modal" id="examplesModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Selecione um Exemplo</h2>
+                    <button class="close-modal" id="closeModal">✕</button>
+                </div>
+                <div class="examples-list">
+                    <button class="example-btn" data-example="hello">
+                        👋 Hello World
+                    </button>
+                    <button class="example-btn" data-example="variables">
+                        📦 Variáveis e Operações
+                    </button>
+                    <button class="example-btn" data-example="function">
+                        🔧 Funções
+                    </button>
+                    <button class="example-btn" data-example="class">
+                        🏛️ Classes e Objetos
+                    </button>
+                    <button class="example-btn" data-example="loop">
+                        🔁 Loops
+                    </button>
+                    <button class="example-btn" data-example="list">
+                        📋 Listas e Dicionários
+                    </button>
+                    <button class="example-btn" data-example="parallel">
+                        ⚡ Blocos Paralelos
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Compiladores 2025.1</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="minipar-mode.js"></script>
+    <script src="examples.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

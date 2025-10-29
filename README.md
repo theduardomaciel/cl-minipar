@@ -21,6 +21,7 @@ O tema escolhido dentre as opções propostas foi o **Tema 2 – MiniPar Orienta
 - 🌳 **Construção da Árvore Sintática Abstrata (AST)**
 - ⚠️ **Tratamento de erros sintáticos** com exceções customizadas (`SyntaxError`)
 - 📄 **Interface textual simples** para entrada e saída no console
+- 🌐 **Interface Web** com syntax highlighting e execução em tempo real
 - ✅ Estrutura modular e extensível para fases futuras (semântica e execução OO)
 
 ---
@@ -31,15 +32,26 @@ A aplicação segue a estrutura clássica de um *front-end de compilador*, organ
 
 ```
 src/
-├── Main.java
+├── Main.java              # Interface CLI
+├── WebServer.java         # Servidor HTTP para interface web
 ├── lexer/  
 │   ├── Lexer.java
 │   ├── Token.java
 │   └── TokenType.java
-└── parser/
-    ├── ASTNode.java
-    ├── Parser.java
-    └── Program.java
+├── parser/
+│   ├── ASTNode.java
+│   ├── Parser.java
+│   ├── Program.java
+│   └── Interpreter.java
+└── interpreter/
+    └── Environment.java
+
+web/                       # Interface Web
+├── index.html            # Interface principal
+├── style.css             # Estilos
+├── app.js                # Lógica da aplicação
+├── minipar-mode.js       # Syntax highlighting
+└── examples.js           # Exemplos de código
 ```
 
 ### Principais conceitos
@@ -53,12 +65,43 @@ src/
 
 ## 🧩 Exemplo de Execução
 
-### Entrada (`test.minipar`)
-```minipar
-x = 3 + 5;
+### 🌐 Interface Web (Recomendado)
+
+**Método 1: Script automático**
+
+Windows:
+```cmd
+scripts\run_web_server.bat
 ```
 
-### Execução
+Linux/Mac/Git Bash:
+```bash
+chmod +x scripts/run_web_server.sh
+./scripts/run_web_server.sh
+```
+
+**Método 2: Manual**
+
+Compile e execute (certifique-se de estar na raiz do projeto):
+```bash
+# Compilar
+javac -encoding UTF-8 -d build -sourcepath src src/WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
+
+# Executar (DA RAIZ DO PROJETO)
+java -cp build WebServer
+```
+
+Acesse no navegador: **http://localhost:8080**
+
+> **⚠️ IMPORTANTE:** Execute o comando `java -cp build WebServer` **da raiz do projeto**, onde está a pasta `web/`. Não execute de dentro da pasta `build/`.
+
+A interface web oferece:
+- ✨ Syntax highlighting para MiniPar
+- 📚 Exemplos prontos para executar
+- ⌨️ Atalhos de teclado (Ctrl+Enter para executar)
+- 🎨 Interface moderna com tema escuro
+
+### 💻 Interface CLI
 
 > Observação: os exemplos abaixo usam o shell Bash no Windows (Git Bash). Se preferir PowerShell/CMD, adapte as barras e aspas conforme necessário.
 
@@ -151,7 +194,9 @@ O vídeo mostra:
 * [x] Impressão da AST
 * [x] Implementar análise semântica (escopos e tipos)
 * [x] Implementar interpretador orientado a objetos
-* [ ] Interface web com visualização da AST
+* [x] Interface web com syntax highlighting
+* [ ] Visualização gráfica da AST na interface web
+* [ ] Debugger interativo
 
 ## 👥 Equipe
 
