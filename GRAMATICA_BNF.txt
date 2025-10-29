@@ -32,7 +32,7 @@
 
 <parametros> ::= [ <parametro> { "," <parametro> } ]
 
-<parametro> ::= <identificador> ":" <tipo>
+<parametro> ::= <tipo> <identificador>
 
 <argumentos> ::= <expressao> { "," <expressao> }
 

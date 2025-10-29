@@ -21,14 +21,14 @@ println("Linguagem: ", nome);
 println("Ativo: ", ativo);`,
 
     function: `# Exemplo: Funções
-func fatorial(n: number) -> number {
+func fatorial(number n) -> number {
     if (n <= 1) {
         return 1;
     }
     return n * fatorial(n - 1);
 }
 
-func fibonacci(n: number) -> number {
+func fibonacci(number n) -> number {
     if (n <= 1) {
         return n;
     }
@@ -46,7 +46,7 @@ class Pessoa {
     string nome;
     number idade;
     
-    void inicializar(n: string, i: number) {
+    void inicializar(string n, number i) {
         this.nome = n;
         this.idade = i;
     }
@@ -60,7 +60,7 @@ class Pessoa {
 class Estudante extends Pessoa {
     string curso;
     
-    void definirCurso(c: string) {
+    void definirCurso(string c) {
         this.curso = c;
     }
     
