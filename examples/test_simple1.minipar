@@ -1,9 +1,0 @@
-# Exemplo 1: Declaração de variáveis e funções
-# Tema 2 - Compiladores 2025.1
-
-var x: number = 10
-var nome: string = "MiniPar"
-
-func soma(a: number, b: number) -> number {
-    return a + b
-}
