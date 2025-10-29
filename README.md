@@ -94,13 +94,13 @@ java -cp build server.WebServer
 
 Acesse no navegador: **http://localhost:8080**
 
-> **⚠️ IMPORTANTE:** Execute o comando `java -cp build server.WebServer` **da raiz do projeto**, onde está a pasta `web/`. Não execute de dentro da pasta `build/`.
+> [!IMPORTANT]   
+Execute o comando `java -cp build server.WebServer` **da raiz do projeto**, onde está a pasta `web/`. Não execute de dentro da pasta `build/`.
 
 A interface web oferece:
-- ✨ Syntax highlighting para MiniPar
-- 📚 Exemplos prontos para executar
-- ⌨️ Atalhos de teclado (Ctrl+Enter para executar)
-- 🎨 Interface moderna com tema escuro
+- Syntax highlighting para MiniPar
+- Exemplos prontos para executar
+- Atalhos de teclado (Ctrl+Enter para executar)
 
 ### 💻 Interface CLI
 
@@ -125,25 +125,6 @@ Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/`):
 java -cp out Main tests/teste6_quicksort.minipar
 ```
 
-### Saída esperada
-
-```
-=== TOKENS ===
-Token(ID, "x", line=1)
-Token(OP, "=", line=1)
-Token(NUMBER, "3", line=1)
-Token(OP, "+", line=1)
-Token(NUMBER, "5", line=1)
-Token(PUNC, ";", line=1)
-Token(EOF, "", line=1)
-
-=== AST ===
-(Assign x
-  (Binary +
-    (Literal 3)
-    (Literal 5)))
-```
-
 > [!TIP]
 > O projeto pode ser aberto diretamente no **IntelliJ IDEA** ou **VS Code** como um projeto Java.
 > Certifique-se de que o JDK 17+ esteja configurado como SDK principal.
@@ -160,17 +141,9 @@ Token(EOF, "", line=1)
 
 ---
 
-## 🧮 Estrutura da Linguagem MiniPar (versão simplificada)
+## 🧮 BNF da Linguagem MiniPar
 
-Produções básicas suportadas nesta versão:
-
-```
-stmt → ID '=' expr ';'
-expr → term (('+' | '-') term)*
-term → NUMBER | ID
-```
-
-Esta gramática inicial será expandida nas próximas etapas para incluir **blocos, funções, classes e métodos**, conforme o Tema 2 – *MiniPar Orientado a Objetos*.
+A gramática BNF da linguagem MiniPar que desenvolvemos nesse projeto está disponível no arquivo [GRAMATICA_BNF.txt](GRAMATICA_BNF.txt).
 
 ---
 
@@ -188,7 +161,7 @@ O vídeo mostra:
 
 ---
 
-## 🧱 Próximos Passos (Roadmap)
+## 🧱 Roadmap
 
 * [x] Implementação do Lexer
 * [x] Implementação do Parser
@@ -196,8 +169,7 @@ O vídeo mostra:
 * [x] Implementar análise semântica (escopos e tipos)
 * [x] Implementar interpretador orientado a objetos
 * [x] Interface web com syntax highlighting
-* [ ] Visualização gráfica da AST na interface web
-* [ ] Debugger interativo
+* [x] Visualização gráfica da AST na interface web
 
 ## 👥 Equipe
 
