@@ -141,6 +141,28 @@ header p {
     background: var(--border-color);
 }
 
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #da190b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 .CodeMirror {
     height: 100% !important;
     font-size: 14px;
@@ -176,6 +198,10 @@ header p {
 
 .output-error {
     color: var(--danger-color);
+}
+
+.output-warning {
+    color: #ff9800;
 }
 
 .output-line {

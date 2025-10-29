@@ -47,7 +47,7 @@ function initializeEditor() {
  */
 function setupEventListeners() {
     document.getElementById('runCode').addEventListener('click', runCode);
-    document.getElementById('clearCode').addEventListener('click', clearCode);
+    document.getElementById('clearCode').addEventListener('click', handleClearOrStop);
     document.getElementById('clearOutput').addEventListener('click', clearOutput);
     document.getElementById('loadExample').addEventListener('click', openExamplesModal);
     document.getElementById('closeModal').addEventListener('click', closeExamplesModal);
@@ -98,6 +98,64 @@ function openExamplesModal() {
  */
 function closeExamplesModal() {
     document.getElementById('examplesModal').classList.remove('active');
+}
+
+/**
+ * Manipula o botão Limpar/Parar
+ */
+function handleClearOrStop() {
+    // Se estiver executando, para a execução
+    if (pollingInterval) {
+        stopExecution();
+    } else {
+        // Caso contrário, limpa o código
+        clearCode();
+    }
+}
+
+/**
+ * Para a execução atual
+ */
+function stopExecution() {
+    if (confirm('Deseja realmente parar a execução?')) {
+        stopPolling();
+        appendToOutput('\n⚠️ Execução interrompida pelo usuário', 'output-warning');
+        resetUIAfterExecution();
+    }
+}
+
+/**
+ * Atualiza UI para estado de execução
+ */
+function setExecutingUI() {
+    const runButton = document.getElementById('runCode');
+    const clearButton = document.getElementById('clearCode');
+
+    // Desabilitar botão executar
+    runButton.disabled = true;
+    runButton.innerHTML = '<span class="loading"></span> Executando...';
+
+    // Transformar botão limpar em parar
+    clearButton.innerHTML = '⏹️ Parar';
+    clearButton.classList.remove('btn-secondary');
+    clearButton.classList.add('btn-danger');
+}
+
+/**
+ * Restaura UI para estado normal
+ */
+function resetUIAfterExecution() {
+    const runButton = document.getElementById('runCode');
+    const clearButton = document.getElementById('clearCode');
+
+    // Reabilitar botão executar
+    runButton.disabled = false;
+    runButton.innerHTML = '▶️ Executar';
+
+    // Restaurar botão limpar
+    clearButton.innerHTML = '🗑️ Limpar';
+    clearButton.classList.remove('btn-danger');
+    clearButton.classList.add('btn-secondary');
 }
 
 /**
@@ -235,9 +293,8 @@ async function runCode() {
     const outputDiv = document.getElementById('output');
     const runButton = document.getElementById('runCode');
 
-    // Desabilitar botão e mostrar loading
-    runButton.disabled = true;
-    runButton.innerHTML = '<span class="loading"></span> Executando...';
+    // Atualizar UI para estado de execução
+    setExecutingUI();
 
     // Limpar saída anterior
     outputDiv.textContent = '';
@@ -269,8 +326,7 @@ async function runCode() {
             `Verifique se o servidor está rodando em ${API_URL}`,
             'error'
         );
-        runButton.disabled = false;
-        runButton.innerHTML = '▶️ Executar';
+        resetUIAfterExecution();
     }
 }
 
@@ -305,10 +361,7 @@ function startPolling() {
             // Verificar se terminou
             if (!status.running) {
                 stopPolling();
-
-                const runButton = document.getElementById('runCode');
-                runButton.disabled = false;
-                runButton.innerHTML = '▶️ Executar';
+                resetUIAfterExecution();
 
                 if (status.error) {
                     appendToOutput('\n' + status.error, 'output-error');
@@ -318,10 +371,7 @@ function startPolling() {
         } catch (error) {
             console.error('Erro no polling:', error);
             stopPolling();
-
-            const runButton = document.getElementById('runCode');
-            runButton.disabled = false;
-            runButton.innerHTML = '▶️ Executar';
+            resetUIAfterExecution();
         }
     }, 200); // Poll a cada 200ms
 }

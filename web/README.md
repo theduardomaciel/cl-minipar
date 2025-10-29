@@ -30,6 +30,18 @@ Abra seu navegador em: **http://localhost:8080**
 - ✅ **Fechamento automático de parênteses e chaves**
 - ✅ **Tema escuro (Monokai)**
 
+### Controles de Execução
+- ✅ **Botão Executar** - Executa o código (vira "Executando..." durante execução)
+- ✅ **Botão Parar** - Durante execução, o botão "Limpar" vira "Parar" (vermelho) para interromper
+- ✅ **Botão Limpar** - Limpa o editor (quando não está executando)
+- ✅ **Estado Desabilitado** - Botão "Executar" fica desabilitado durante execução
+
+### Input Interativo
+- ✅ **readln()** - Lê entrada de texto do usuário
+- ✅ **readNumber()** - Lê entrada numérica com validação
+- ✅ **Campo de input visual** - Aparece automaticamente quando necessário
+- ✅ **Polling em tempo real** - Status atualizado a cada 200ms
+
 ### Atalhos de Teclado
 - `Ctrl+Enter` / `Cmd+Enter`: Executar código
 - `Ctrl+/` / `Cmd+/`: Comentar/descomentar linha
