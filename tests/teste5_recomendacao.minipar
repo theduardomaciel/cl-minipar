@@ -1,24 +1,18 @@
 # Programa de Teste 5: Sistema de Recomendação E-commerce
 # Sistema de recomendação baseado em histórico de compras usando Redes Neurais
 
+
+# --- Classes ---
 class Produto {
     string nome;
-    
-    # Construtor
     Produto(string n) {
         this.nome = n;
-    }
-    
-    string getNome() {
-        return this.nome;
     }
 }
 
 class Categoria {
     string nome;
     list produtos;
-    
-    # Construtor
     Categoria(string n, list prods) {
         this.nome = n;
         this.produtos = prods;
@@ -27,183 +21,203 @@ class Categoria {
 
 class Usuario {
     list historico_compras;
-    
-    # Construtor
     Usuario(list historico) {
         this.historico_compras = historico;
     }
-    
-    list codificarHistorico(list todos_produtos) {
+    list codificar_historico(list todos_produtos) {
         list codificacao = [];
         number i = 0;
-        
         while (i < todos_produtos.length) {
-            # Verifica se produto está no histórico
-            bool encontrado = false;
-            number j = 0;
-            
-            while (j < this.historico_compras.length) {
-                if (todos_produtos[i] == this.historico_compras[j]) {
-                    encontrado = true;
-                }
-                j = j + 1;
-            }
-            
-            if (encontrado) {
+            if (this.comprou(todos_produtos[i])) {
                 codificacao[i] = 1;
             } else {
                 codificacao[i] = 0;
             }
-            
             i = i + 1;
         }
-        
         return codificacao;
+    }
+    bool comprou(string produto) {
+        number j = 0;
+        while (j < this.historico_compras.length) {
+            if (this.historico_compras[j] == produto) {
+                return true;
+            }
+            j = j + 1;
+        }
+        return false;
     }
 }
 
-class RedeNeuralRecomendacao {
+class RedeNeural {
     number input_size;
     number hidden_size;
     number output_size;
-    list pesos_input_hidden;
-    list pesos_hidden_output;
-    
-    # Construtor
-    RedeNeuralRecomendacao(number input_s, number hidden_s, number output_s) {
+    list W1;
+    list b1;
+    list W2;
+    list b2;
+    RedeNeural(number input_s, number hidden_s, number output_s) {
         this.input_size = input_s;
         this.hidden_size = hidden_s;
         this.output_size = output_s;
-        
-        # Inicializar pesos (simplificado)
-        this.pesos_input_hidden = [];
-        this.pesos_hidden_output = [];
-    }
-    
-    number relu(number x) {
-        if (x > 0) {
-            return x;
-        } else {
-            return 0;
-        }
-    }
-    
-    number sigmoid(number x) {
-        # Aproximação simples
-        if (x > 0) {
-            return 0.8;
-        } else {
-            return 0.2;
-        }
-    }
-    
-    list propagacao(list entrada) {
-        # Camada oculta (simplificado)
-        list camada_oculta = [];
+        # Inicializa pesos e bias com 0.5
+        this.W1 = [];
+        this.b1 = [];
+        this.W2 = [];
+        this.b2 = [];
         number i = 0;
-        
-        while (i < this.hidden_size) {
-            camada_oculta[i] = this.relu(0.5);
+        while (i < input_s) {
+            this.W1[i] = [];
+            number j = 0;
+            while (j < hidden_s) {
+                this.W1[i][j] = 0.5;
+                j = j + 1;
+            }
             i = i + 1;
         }
-        
-        # Camada de saída
-        list saida = [];
         i = 0;
-        
-        while (i < this.output_size) {
-            saida[i] = this.sigmoid(0.6);
+        while (i < hidden_s) {
+            this.b1[i] = 0.5;
             i = i + 1;
         }
-        
-        return saida;
+        i = 0;
+        while (i < hidden_s) {
+            this.W2[i] = [];
+            number j = 0;
+            while (j < output_s) {
+                this.W2[i][j] = 0.5;
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        i = 0;
+        while (i < output_s) {
+            this.b2[i] = 0.5;
+            i = i + 1;
+        }
+    }
+    list relu(list x) {
+        list r = [];
+        number i = 0;
+        while (i < x.length) {
+            r[i] = max(0, x[i]);
+            i = i + 1;
+        }
+        return r;
+    }
+    list sigmoid(list x) {
+        list s = [];
+        number i = 0;
+        while (i < x.length) {
+            # sigmoid(x) = 1/(1+exp(-x)) usando built-in exp
+            s[i] = 1 / (1 + exp(-x[i]));
+            i = i + 1;
+        }
+        return s;
+    }
+    list forward(list X) {
+        # Z1 = W1*X + b1
+        list Z1 = [];
+        number i = 0;
+        while (i < this.b1.length) {
+            number soma = 0;
+            number j = 0;
+            while (j < X.length) {
+                soma = soma + X[j] * this.W1[j][i];
+                j = j + 1;
+            }
+            Z1[i] = soma + this.b1[i];
+            i = i + 1;
+        }
+        list A1 = this.relu(Z1);
+        # Z2 = W2*A1 + b2
+        list Z2 = [];
+        i = 0;
+        while (i < this.b2.length) {
+            number soma2 = 0;
+            number j = 0;
+            while (j < A1.length) {
+                soma2 = soma2 + A1[j] * this.W2[j][i];
+                j = j + 1;
+            }
+            Z2[i] = soma2 + this.b2[i];
+            i = i + 1;
+        }
+        list A2 = this.sigmoid(Z2);
+        return A2;
     }
 }
 
 class Recomendador {
     Usuario usuario;
     list categorias;
-    RedeNeuralRecomendacao rede;
-    
-    # Construtor
+    list todos_produtos;
     Recomendador(Usuario u, list cats) {
         this.usuario = u;
         this.categorias = cats;
-        
-        # Criar rede neural
-        number num_produtos = this.contarProdutos();
-        this.rede = new RedeNeuralRecomendacao(num_produtos, 10, num_produtos);
+        this.todos_produtos = this.obterTodosProdutos();
     }
-    
-    number contarProdutos() {
-        # Contar total de produtos em todas categorias
-        return 12;
-    }
-    
-    list recomendar() {
-        print("=== Sistema de Recomendação ===");
-        
-        list todos_produtos = this.obterTodosProdutos();
-        list historico_codificado = this.usuario.codificarHistorico(todos_produtos);
-        
-        # Obter recomendações via rede neural
-        list probabilidades = this.rede.propagacao(historico_codificado);
-        
-        # Filtrar produtos recomendados (probabilidade > 0.5)
-        list recomendacoes = [];
+    list obterTodosProdutos() {
+        list todos = [];
+        number idx = 0;
         number i = 0;
-        number count = 0;
-        
-        while (i < probabilidades.length) {
-            if (probabilidades[i] > 0.5) {
-                recomendacoes[count] = todos_produtos[i];
-                count = count + 1;
+        while (i < this.categorias.length) {
+            Categoria cat = this.categorias[i];
+            number j = 0;
+            while (j < cat.produtos.length) {
+                Produto p = cat.produtos[j];
+                todos[idx] = p.nome;
+                idx = idx + 1;
+                j = j + 1;
             }
             i = i + 1;
         }
-        
-        return recomendacoes;
-    }
-    
-    list obterTodosProdutos() {
-        # Retorna lista com todos os produtos de todas as categorias
-        list todos = [];
-        # Simplificado: retorna produtos fixos
-        todos[0] = "Smartphone";
-        todos[1] = "Laptop";
-        todos[2] = "Tablet";
-        todos[3] = "Fones de ouvido";
-        todos[4] = "Camisa";
-        todos[5] = "Jeans";
-        todos[6] = "Jaqueta";
-        todos[7] = "Sapatos";
-        todos[8] = "Geladeira";
-        todos[9] = "Micro-ondas";
-        todos[10] = "Máquina de lavar";
-        todos[11] = "Ar condicionado";
-        
         return todos;
+    }
+    list recomendar() {
+        list entrada_codificada = this.usuario.codificar_historico(this.todos_produtos);
+        number input_size = entrada_codificada.length;
+        number hidden_size = 10;
+        number output_size = entrada_codificada.length;
+        RedeNeural rede = new RedeNeural(input_size, hidden_size, output_size);
+        list saida = rede.forward(entrada_codificada);
+        list recomendacoes = [];
+        number i = 0;
+        number idx = 0;
+        while (i < saida.length) {
+            if (saida[i] > 0.5 && !this.usuario.comprou(this.todos_produtos[i])) {
+                recomendacoes[idx] = this.todos_produtos[i];
+                idx = idx + 1;
+            }
+            i = i + 1;
+        }
+        return recomendacoes;
     }
 }
 
-# Programa principal
+# --- Execução ---
 seq {
-    # Criar histórico do usuário
+    # Categorias e produtos
+    list categorias = [];
+    categorias[0] = new Categoria("Eletrônicos", [new Produto("Smartphone"), new Produto("Laptop"), new Produto("Tablet"), new Produto("Fones de ouvido")]);
+    categorias[1] = new Categoria("Roupas", [new Produto("Camisa"), new Produto("Jeans"), new Produto("Jaqueta"), new Produto("Sapatos")]);
+    categorias[2] = new Categoria("Eletrodomésticos", [new Produto("Geladeira"), new Produto("Micro-ondas"), new Produto("Máquina de lavar"), new Produto("Ar condicionado")]);
+    categorias[3] = new Categoria("Livros", [new Produto("Ficção"), new Produto("Não-ficção"), new Produto("Ficção científica"), new Produto("Fantasia")]);
+
+    # Usuário
     list historico = ["Smartphone", "Jeans", "Micro-ondas", "Ficção"];
     Usuario usuario = new Usuario(historico);
-    
-    # Criar categorias (simplificado)
-    list categorias = [];
-    
-    # Criar recomendador
+
+    # Recomendador
     Recomendador recomendador = new Recomendador(usuario, categorias);
     list recomendacoes = recomendador.recomendar();
-    
+
     # Exibir recomendações
-    print("Produtos recomendados para você:");
+    println("Produtos recomendados para você:");
     number i = 0;
     while (i < recomendacoes.length) {
-        print(recomendacoes[i]);
+        println(recomendacoes[i]);
         i = i + 1;
     }
 }

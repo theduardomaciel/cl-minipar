@@ -44,6 +44,12 @@ public class Interpreter {
             double b = toNumber(args.get(1));
             return Math.pow(a, b);
         });
+        builtins.put("max", (args) -> {
+            checkArity("max", args, 2);
+            double a = toNumber(args.get(0));
+            double b = toNumber(args.get(1));
+            return (a > b) ? a : b;
+        });
     }
     
     // Propriedades para acesso ao environment da thread atual
