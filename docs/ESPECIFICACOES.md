@@ -164,7 +164,7 @@ Execução: Thread 1 (Cálculo do Fatorial) e thread 2 (Cálculo da Série de Fi
 
 ### Programa de Teste 3:
 
-Implementar um programa na linguagem minipar para o código seguinte (exemplo em Python) da implementação de um neurônio utilizando Classes e Objetos
+Implementar um programa na linguagem MiniPar para o código seguinte (exemplo em Python) da implementação de um neurônio utilizando Classes e Objetos
 
 ```python
 class Neuronio:

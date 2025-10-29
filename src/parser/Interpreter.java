@@ -33,6 +33,11 @@ public class Interpreter {
         builtins.put("random", (args) -> Math.random());
         builtins.put("sqrt", (args) -> checkArityAndNumber("sqrt", args, 1, true));
         builtins.put("abs", (args) -> checkArityAndNumber("abs", args, 1, false));
+        builtins.put("exp", (args) -> {
+            checkArity("exp", args, 1);
+            double x = toNumber(args.get(0));
+            return Math.exp(x);
+        });
         builtins.put("pow", (args) -> {
             checkArity("pow", args, 2);
             double a = toNumber(args.get(0));

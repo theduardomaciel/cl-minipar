@@ -1,55 +1,58 @@
 # Programa de Teste 4: Rede Neural XOR
-# Rede neural com camada oculta para aprender função XOR
+# Implementação de Rede Neural para aprender a função XOR
+# com uma camada oculta de 3 neurônios e backpropagation
 
-class NeuronioRNA {
+# Funções auxiliares
+func sigmoid(number x) -> number {
+    # sigmoid(x) = 1 / (1 + e^(-x))
+    number exp_neg_x = exp(-x);
+    return 1 / (1 + exp_neg_x);
+}
+
+func sigmoid_derivative(number x) -> number {
+    return x * (1 - x);
+}
+
+class Neuronio {
     list pesos;
     number bias;
+    number saida;
     
     # Construtor
-    NeuronioRNA(number num_inputs) {
+    Neuronio(number num_inputs) {
         this.pesos = [];
-        this.bias = 0.5;
+        this.saida = 0;
         
-        # Inicializar pesos aleatórios (simplificado)
+        # Inicializar pesos aleatórios usando built-in random()
         number i = 0;
         while (i < num_inputs) {
-            # Simulando valor aleatório entre -0.5 e 0.5
-            number peso_aleatorio = 0.3;
-            this.pesos[i] = peso_aleatorio;
+            this.pesos[i] = random();
             i = i + 1;
         }
+        this.bias = random();
     }
     
-    number sigmoid(number x) {
-        # Aproximação simples de sigmoid
-        # Em implementação real: 1 / (1 + exp(-x))
-        if (x > 0) {
-            return 0.9;
-        } else {
-            return 0.1;
-        }
-    }
-    
-    number sigmoid_derivative(number x) {
-        return x * (1 - x);
-    }
-    
-    number feedforward(list inputs) {
+    number feedforward(list entradas) {
         number soma = this.bias;
         number i = 0;
         
-        while (i < inputs.length) {
-            soma = soma + (inputs[i] * this.pesos[i]);
+        while (i < entradas.length) {
+            soma = soma + (entradas[i] * this.pesos[i]);
             i = i + 1;
         }
         
-        return this.sigmoid(soma);
+        this.saida = sigmoid(soma);
+        return this.saida;
+    }
+    
+    number calcular_derivada() {
+        return sigmoid_derivative(this.saida);
     }
 }
 
 class RedeNeural {
     list camada_oculta;
-    NeuronioRNA neuronio_saida;
+    Neuronio neuronio_saida;
     number taxa_aprendizado;
     
     # Construtor
@@ -57,47 +60,88 @@ class RedeNeural {
         this.taxa_aprendizado = taxa;
         this.camada_oculta = [];
         
-        # Criar 3 neurônios na camada oculta
+        # Criar 3 neurônios na camada oculta (recebem 2 entradas)
         number i = 0;
         while (i < 3) {
-            NeuronioRNA neuronio = new NeuronioRNA(2);
+            Neuronio neuronio = new Neuronio(2);
             this.camada_oculta[i] = neuronio;
             i = i + 1;
         }
         
         # Criar neurônio de saída (recebe 3 entradas da camada oculta)
-        this.neuronio_saida = new NeuronioRNA(3);
+        this.neuronio_saida = new Neuronio(3);
     }
     
-    number feedforward(list inputs) {
+    list feedforward(list entradas) {
         # Processar camada oculta
         list saidas_ocultas = [];
         number i = 0;
         
         while (i < 3) {
-            saidas_ocultas[i] = this.camada_oculta[i].feedforward(inputs);
+            saidas_ocultas[i] = this.camada_oculta[i].feedforward(entradas);
             i = i + 1;
         }
         
         # Processar camada de saída
-        return this.neuronio_saida.feedforward(saidas_ocultas);
+        number saida_final = this.neuronio_saida.feedforward(saidas_ocultas);
+        
+        # Retornar [saidas_ocultas, saida_final]
+        list resultado = [saidas_ocultas, saida_final];
+        return resultado;
     }
     
-    void treinar(list entradas, list saidas_desejadas) {
-        print("=== Treinando Rede Neural XOR ===");
+    void backpropagation(list entradas, number saida_desejada, list saidas_ocultas, number saida_final) {
+        # Calcular erro da camada de saída
+        number erro = saida_desejada - saida_final;
+        number delta_saida = erro * this.neuronio_saida.calcular_derivada();
         
-        number epocas = 100;
+        # Atualizar pesos da camada de saída
+        number i = 0;
+        while (i < this.neuronio_saida.pesos.length) {
+            this.neuronio_saida.pesos[i] = this.neuronio_saida.pesos[i] + 
+                (saidas_ocultas[i] * delta_saida * this.taxa_aprendizado);
+            i = i + 1;
+        }
+        this.neuronio_saida.bias = this.neuronio_saida.bias + 
+            (delta_saida * this.taxa_aprendizado);
+        
+        # Atualizar pesos da camada oculta
+        i = 0;
+        while (i < 3) {
+            Neuronio neuronio = this.camada_oculta[i];
+            number delta_oculto = delta_saida * this.neuronio_saida.pesos[i] * 
+                neuronio.calcular_derivada();
+            
+            number j = 0;
+            while (j < neuronio.pesos.length) {
+                neuronio.pesos[j] = neuronio.pesos[j] + 
+                    (entradas[j] * delta_oculto * this.taxa_aprendizado);
+                j = j + 1;
+            }
+            
+            neuronio.bias = neuronio.bias + (delta_oculto * this.taxa_aprendizado);
+            i = i + 1;
+        }
+    }
+    
+    void treinar(list entradas, list saidas_desejadas, number epocas) {
+        println("=== Treinando Rede Neural XOR ===");
+        print("Épocas: ");
+        println(epocas);
+        
         number epoca = 0;
-        
         while (epoca < epocas) {
             number i = 0;
             
             while (i < entradas.length) {
                 # Feedforward
-                number saida = this.feedforward(entradas[i]);
+                list resultado = this.feedforward(entradas[i]);
+                list saidas_ocultas = resultado[0];
+                number saida_final = resultado[1];
                 
-                # Calcular erro (simplificado)
-                number erro = saidas_desejadas[i] - saida;
+                # Backpropagation
+                this.backpropagation(entradas[i], saidas_desejadas[i], 
+                    saidas_ocultas, saida_final);
                 
                 i = i + 1;
             }
@@ -105,19 +149,23 @@ class RedeNeural {
             epoca = epoca + 1;
         }
         
-        print("Treinamento concluído!");
+        println("Treinamento concluído!");
     }
     
     void testar(list entradas) {
-        print("=== Testando Rede Neural ===");
+        println("");
+        println("=== Testando Rede Neural ===");
         number i = 0;
         
         while (i < entradas.length) {
-            number saida = this.feedforward(entradas[i]);
+            list resultado = this.feedforward(entradas[i]);
+            number saida = resultado[1];
+            
             print("Input: ");
             print(entradas[i]);
             print(", Predicted Output: ");
-            print(saida);
+            println(saida);
+            
             i = i + 1;
         }
     }
@@ -125,12 +173,19 @@ class RedeNeural {
 
 # Programa principal
 seq {
+    println("=== Rede Neural XOR - MiniPar 2025.1 ===");
+    println("");
+    
     # Dados XOR
     list entradas = [[0, 0], [0, 1], [1, 0], [1, 1]];
     list saidas_desejadas = [0, 1, 1, 0];
     
-    # Criar e treinar rede
+    # Criar e treinar rede com taxa de aprendizado 0.2
     RedeNeural rede = new RedeNeural(0.2);
-    rede.treinar(entradas, saidas_desejadas);
+    
+    # Treinar por 20000 épocas (como no exemplo Python)
+    rede.treinar(entradas, saidas_desejadas, 20000);
+    
+    # Testar a rede
     rede.testar(entradas);
 }
