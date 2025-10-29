@@ -554,3 +554,177 @@ class ContinueStmt extends ASTNode {
         return "Continue";
     }
 }
+
+/**
+ * Do-While statement
+ */
+class DoWhileStmt extends ASTNode {
+    public List<ASTNode> body;
+    public ASTNode condition;
+
+    public DoWhileStmt(List<ASTNode> body, ASTNode condition) {
+        this.body = body;
+        this.condition = condition;
+    }
+
+    @Override
+    public String toString() {
+        return "DoWhile(condition=" + condition + ", body=" + body + ")";
+    }
+}
+
+/**
+ * For-in statement
+ */
+class ForStmt extends ASTNode {
+    public VarDecl variable; // variável de iteração (nome e tipo)
+    public ASTNode iterable; // expressão iterável
+    public List<ASTNode> body;
+
+    public ForStmt(VarDecl variable, ASTNode iterable, List<ASTNode> body) {
+        this.variable = variable;
+        this.iterable = iterable;
+        this.body = body;
+    }
+
+    @Override
+    public String toString() {
+        return "For(var=" + variable + ", in=" + iterable + ", body=" + body + ")";
+    }
+}
+
+/**
+ * Literal de lista: [expr, expr, ...]
+ */
+class ListLiteral extends ASTNode {
+    public List<ASTNode> elements;
+
+    public ListLiteral(List<ASTNode> elements) {
+        this.elements = elements;
+    }
+
+    @Override
+    public String toString() {
+        return "List" + elements;
+    }
+}
+
+/**
+ * Par chave:valor para dicionário
+ */
+class DictEntry {
+    public ASTNode key;
+    public ASTNode value;
+
+    public DictEntry(ASTNode key, ASTNode value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return key + ":" + value;
+    }
+}
+
+/**
+ * Literal de dicionário: { key: value, ... }
+ */
+class DictLiteral extends ASTNode {
+    public List<DictEntry> entries;
+
+    public DictLiteral(List<DictEntry> entries) {
+        this.entries = entries;
+    }
+
+    @Override
+    public String toString() {
+        return "Dict" + entries;
+    }
+}
+
+/**
+ * Indexação: alvo[índice]
+ */
+class IndexExpr extends ASTNode {
+    public ASTNode target;
+    public ASTNode index;
+
+    public IndexExpr(ASTNode target, ASTNode index) {
+        this.target = target;
+        this.index = index;
+    }
+
+    @Override
+    public String toString() {
+        return "Index(" + target + "[" + index + "])";
+    }
+}
+
+/**
+ * Comando de impressão: print(arg1, arg2, ...)
+ */
+class PrintStmt extends ASTNode {
+    public List<ASTNode> arguments;
+
+    public PrintStmt(List<ASTNode> arguments) {
+        this.arguments = arguments;
+    }
+
+    @Override
+    public String toString() {
+        return "Print" + arguments;
+    }
+}
+
+/**
+ * Expressão de entrada: input([prompt])
+ */
+class InputExpr extends ASTNode {
+    public ASTNode prompt; // pode ser null
+
+    public InputExpr(ASTNode prompt) {
+        this.prompt = prompt;
+    }
+
+    @Override
+    public String toString() {
+        return "Input(" + (prompt != null ? prompt : "") + ")";
+    }
+}
+
+/**
+ * Envio via canal: canal.send(...)
+ */
+class SendStmt extends ASTNode {
+    public ASTNode channel;
+    public List<ASTNode> arguments;
+
+    public SendStmt(ASTNode channel, List<ASTNode> arguments) {
+        this.channel = channel;
+        this.arguments = arguments;
+    }
+
+    @Override
+    public String toString() {
+        return "Send(channel=" + channel + ", args=" + arguments + ")";
+    }
+}
+
+/**
+ * Recepção via canal: canal.receive(...)
+ */
+class ReceiveStmt extends ASTNode {
+    public ASTNode channel;
+    public List<ASTNode> arguments;
+
+    public ReceiveStmt(ASTNode channel, List<ASTNode> arguments) {
+        this.channel = channel;
+        this.arguments = arguments;
+    }
+
+    @Override
+    public String toString() {
+        return "Receive(channel=" + channel + ", args=" + arguments + ")";
+    }
+}

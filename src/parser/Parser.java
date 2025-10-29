@@ -234,19 +234,25 @@ public class Parser {
      * @return CanalDecl representando a declaração de canal.
      */
     private CanalDecl channelDeclaration() {
-        consume(TokenType.LEFT_PAREN, "Esperado '(' após 'c_channel'");
         List<String> nomes = new ArrayList<>();
-
-        if (!check(TokenType.RIGHT_PAREN)) {
-            do {
-                Token nameToken = consume(TokenType.ID, "Esperado nome do canal");
-                nomes.add(nameToken.lexeme());
-            } while (match(TokenType.COMMA));
+        if (match(TokenType.LEFT_PAREN)) {
+            if (!check(TokenType.RIGHT_PAREN)) {
+                do {
+                    Token nameToken = consume(TokenType.ID, "Esperado nome do canal");
+                    nomes.add(nameToken.lexeme());
+                } while (match(TokenType.COMMA));
+            }
+            consume(TokenType.RIGHT_PAREN, "Esperado ')' após nomes dos canais");
+        } else {
+            // Sintaxe alternativa: c_channel canal comp1 comp2
+            Token canal = consume(TokenType.ID, "Esperado nome do canal");
+            Token comp1 = consume(TokenType.ID, "Esperado identificador do primeiro componente");
+            Token comp2 = consume(TokenType.ID, "Esperado identificador do segundo componente");
+            nomes.add(canal.lexeme());
+            nomes.add(comp1.lexeme());
+            nomes.add(comp2.lexeme());
         }
-
-        consume(TokenType.RIGHT_PAREN, "Esperado ')' após nomes dos canais");
         consume(TokenType.SEMICOLON, "Esperado ';' ao final da declaração de canal");
-
         return new CanalDecl(nomes);
     }
 
@@ -258,6 +264,9 @@ public class Parser {
     private ASTNode statement() {
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.WHILE)) return whileStatement();
+        if (match(TokenType.DO)) return doWhileStatement();
+        if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.BREAK)) return new BreakStmt();
         if (match(TokenType.CONTINUE)) return new ContinueStmt();
@@ -317,6 +326,57 @@ public class Parser {
         consume(TokenType.RIGHT_BRACE, "Esperado '}' após corpo do while");
 
         return new WhileStmt(condition, body);
+    }
+
+    /**
+     * Realiza o parsing de uma instrução do-while.
+     */
+    private DoWhileStmt doWhileStatement() {
+        consume(TokenType.LEFT_BRACE, "Esperado '{' após 'do'");
+        List<ASTNode> body = block();
+        consume(TokenType.RIGHT_BRACE, "Esperado '}' após corpo do 'do'");
+        consume(TokenType.WHILE, "Esperado 'while' após bloco do 'do'");
+        consume(TokenType.LEFT_PAREN, "Esperado '(' após 'while'");
+        ASTNode condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Esperado ')' após condição do 'do-while'");
+        consume(TokenType.SEMICOLON, "Esperado ';' após do-while");
+        return new DoWhileStmt(body, condition);
+    }
+
+    /**
+     * Realiza o parsing de uma instrução for-in.
+     */
+    private ForStmt forStatement() {
+        consume(TokenType.LEFT_PAREN, "Esperado '(' após 'for'");
+        // Forma: var id : tipo in expr
+        consume(TokenType.VAR, "Esperado 'var' na cláusula do for");
+        Token nameToken = consume(TokenType.ID, "Esperado nome da variável do for");
+        consume(TokenType.COLON, "Esperado ':' após nome da variável do for");
+        Token typeToken = advance();
+        VarDecl variable = new VarDecl(nameToken.lexeme(), typeToken.lexeme(), null);
+        consume(TokenType.IN, "Esperado 'in' no for");
+        ASTNode iterable = expression();
+        consume(TokenType.RIGHT_PAREN, "Esperado ')' após cláusula do for");
+        consume(TokenType.LEFT_BRACE, "Esperado '{' após for");
+        List<ASTNode> body = block();
+        consume(TokenType.RIGHT_BRACE, "Esperado '}' após corpo do for");
+        return new ForStmt(variable, iterable, body);
+    }
+
+    /**
+     * Realiza o parsing de um comando de impressão.
+     */
+    private PrintStmt printStatement() {
+        consume(TokenType.LEFT_PAREN, "Esperado '(' após 'print'");
+        List<ASTNode> args = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                args.add(expression());
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos de print");
+        consume(TokenType.SEMICOLON, "Esperado ';' ao final do print");
+        return new PrintStmt(args);
     }
 
     /**
@@ -547,16 +607,29 @@ public class Parser {
                 expr = finishCall(expr);
             } else if (match(TokenType.DOT)) {
                 Token name = consume(TokenType.ID, "Esperado nome do método/propriedade após '.'");
-
-                // Verifica se é uma chamada de método
-                if (match(TokenType.LEFT_PAREN)) {
+                // send/receive como nós específicos
+                if (name.lexeme().equals("send") || name.lexeme().equals("receive")) {
+                    consume(TokenType.LEFT_PAREN, "Esperado '(' após '" + name.lexeme() + "'");
+                    List<ASTNode> args = arguments();
+                    consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos");
+                    if (name.lexeme().equals("send")) {
+                        expr = new SendStmt(expr, args);
+                    } else {
+                        expr = new ReceiveStmt(expr, args);
+                    }
+                } else if (match(TokenType.LEFT_PAREN)) {
+                    // chamada de método comum
                     List<ASTNode> arguments = arguments();
                     consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos");
                     expr = new MethodCall(expr, name.lexeme(), arguments);
                 } else {
-                    // É acesso à propriedade - por enquanto tratamos como identifier
+                    // acesso a propriedade como identificador simbólico
                     expr = new Identifier(name.lexeme());
                 }
+            } else if (match(TokenType.LEFT_BRACKET)) {
+                ASTNode indexExpr = expression();
+                consume(TokenType.RIGHT_BRACKET, "Esperado ']' após índice");
+                expr = new IndexExpr(expr, indexExpr);
             } else {
                 break;
             }
@@ -627,12 +700,51 @@ public class Parser {
             return new Literal(previous().lexeme());
         }
 
+        if (match(TokenType.INPUT)) {
+            // input([prompt])
+            ASTNode prompt = null;
+            if (match(TokenType.LEFT_PAREN)) {
+                if (!check(TokenType.RIGHT_PAREN)) {
+                    prompt = expression();
+                }
+                consume(TokenType.RIGHT_PAREN, "Esperado ')' após input");
+            }
+            return new InputExpr(prompt);
+        }
+
         if (match(TokenType.NEW)) {
             Token className = consume(TokenType.ID, "Esperado nome da classe após 'new'");
             consume(TokenType.LEFT_PAREN, "Esperado '(' após nome da classe");
             List<ASTNode> arguments = arguments();
             consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos do construtor");
             return new NewInstance(className.lexeme(), arguments);
+        }
+
+        if (match(TokenType.LEFT_BRACKET)) {
+            // lista literal
+            List<ASTNode> elems = new ArrayList<>();
+            if (!check(TokenType.RIGHT_BRACKET)) {
+                do {
+                    elems.add(expression());
+                } while (match(TokenType.COMMA));
+            }
+            consume(TokenType.RIGHT_BRACKET, "Esperado ']' após literal de lista");
+            return new ListLiteral(elems);
+        }
+
+        if (match(TokenType.LEFT_BRACE)) {
+            // dicionário literal { key: value, ... }
+            List<DictEntry> entries = new ArrayList<>();
+            if (!check(TokenType.RIGHT_BRACE)) {
+                do {
+                    ASTNode key = expression();
+                    consume(TokenType.COLON, "Esperado ':' entre chave e valor no dicionário");
+                    ASTNode value = expression();
+                    entries.add(new DictEntry(key, value));
+                } while (match(TokenType.COMMA));
+            }
+            consume(TokenType.RIGHT_BRACE, "Esperado '}' após literal de dicionário");
+            return new DictLiteral(entries);
         }
 
         if (match(TokenType.ID)) {

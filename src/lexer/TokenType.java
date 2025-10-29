@@ -15,10 +15,13 @@ public enum TokenType {
     // Palavras-chave
     VAR,         // Declaração de variável
     FUNC,        // Declaração de função
+    PRINT,       // Saída
+    INPUT,       // Entrada
     IF,          // Estrutura condicional
     ELSE,        // Alternativa condicional
     WHILE,       // Estrutura de repetição
     FOR,         // Estrutura de repetição
+    DO,          // Estrutura de repetição do-while
     RETURN,      // Retorno de função
     BREAK,       // Interrupção de laço
     CONTINUE,    // Continuação de laço

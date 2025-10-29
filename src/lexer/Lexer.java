@@ -36,10 +36,13 @@ public class Lexer {
         // Palavras-chave de controle
         keywords.put("var", TokenType.VAR);
         keywords.put("func", TokenType.FUNC);
+    keywords.put("print", TokenType.PRINT);
+    keywords.put("input", TokenType.INPUT);
         keywords.put("if", TokenType.IF);
         keywords.put("else", TokenType.ELSE);
         keywords.put("while", TokenType.WHILE);
         keywords.put("for", TokenType.FOR);
+    keywords.put("do", TokenType.DO);
         keywords.put("return", TokenType.RETURN);
         keywords.put("break", TokenType.BREAK);
         keywords.put("continue", TokenType.CONTINUE);
