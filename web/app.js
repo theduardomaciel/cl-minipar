@@ -6,6 +6,17 @@ let waitingForInput = false;
 let currentSessionId = null;
 let pollingInterval = null;
 let activeTab = 'tab-output';
+// AST canvas state
+let astCanvas, astCtx;
+let astTree = null;
+let astPanX = 0, astPanY = 0;
+let astScale = 1;
+let astDragging = false;
+let astLastX = 0, astLastY = 0;
+const AST_NODE_W = 120;
+const AST_NODE_H = 36;
+const AST_H_SPACING = 24;
+const AST_V_SPACING = 80;
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function () {
@@ -14,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadInitialExample();
     setupTerminalInput();
     setupTabs();
+    setupAstCanvas();
 });
 
 /**
@@ -88,6 +100,11 @@ function setupTabs() {
                 el.classList.toggle('active', el.id === tab);
             });
             activeTab = tab;
+            if (activeTab === 'tab-ast') {
+                // garantir tamanho correto ao mostrar
+                resizeAstCanvas();
+                redrawAst();
+            }
         });
     });
 }
@@ -205,9 +222,10 @@ function clearOutput() {
 
     // Limpar Tokens e AST
     const tokensEl = document.getElementById('tokens');
-    const astEl = document.getElementById('ast');
     if (tokensEl) { tokensEl.textContent = ''; tokensEl.classList.add('empty'); }
-    if (astEl) { astEl.textContent = ''; astEl.classList.add('empty'); }
+    // Limpar AST canvas
+    astTree = null;
+    redrawAst();
 }
 
 /**
@@ -275,7 +293,7 @@ function showInputField(prompt = '') {
 function hideInputField() {
     const inputContainer = document.getElementById('inputContainer');
     const userInput = document.getElementById('userInput');
-    
+
     inputContainer.classList.add('hidden');
     userInput.value = ''; // Limpa o campo ao esconder
 }
@@ -380,10 +398,14 @@ async function analyzeAndRender(code) {
     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
     const data = await res.json();
 
-    // Render Tokens
+    // Render Tokens (lista)
     renderTokens(data.tokens || [], data.error);
-    // Render AST
-    renderAST(data.ast || '', data.error);
+    // Construir árvore combinada (AST + Tokens) para o canvas
+    const astPart = data.astTree || null;
+    const tokensPart = buildTokensTree(data.tokens || []);
+    const combined = buildCombinedTree(astPart, tokensPart);
+    astTree = combined;
+    fitAst();
 }
 
 function renderTokens(tokens, error) {
@@ -408,20 +430,325 @@ function renderTokens(tokens, error) {
     el.scrollTop = 0;
 }
 
-function renderAST(ast, error) {
-    const el = document.getElementById('ast');
-    if (!el) return;
-    el.classList.remove('empty');
-    if (error) {
-        el.textContent = `Erro na análise:\n${error}`;
+// ===== AST Canvas Rendering =====
+function setupAstCanvas() {
+    astCanvas = document.getElementById('astCanvas');
+    if (!astCanvas) return;
+    astCtx = astCanvas.getContext('2d');
+    resizeAstCanvas();
+    window.addEventListener('resize', () => {
+        resizeAstCanvas();
+        redrawAst();
+    });
+
+    // Drag to pan
+    astCanvas.addEventListener('mousedown', (e) => {
+        astDragging = true;
+        const rect = astCanvas.getBoundingClientRect();
+        astLastX = e.clientX - rect.left;
+        astLastY = e.clientY - rect.top;
+    });
+    window.addEventListener('mouseup', () => { astDragging = false; });
+    window.addEventListener('mousemove', (e) => {
+        if (!astDragging) return;
+        const rect = astCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const dx = x - astLastX;
+        const dy = y - astLastY;
+        astPanX += dx;
+        astPanY += dy;
+        astLastX = x;
+        astLastY = y;
+        redrawAst();
+    });
+
+    // Wheel to zoom
+    astCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = -Math.sign(e.deltaY) * 0.1;
+        const newScale = Math.min(2.5, Math.max(0.3, astScale * (1 + delta)));
+        // zoom to mouse position
+        const rect = astCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        // world coords before
+        const wx = (mx - astPanX) / astScale;
+        const wy = (my - astPanY) / astScale;
+        astScale = newScale;
+        // adjust pan so the point stays under the cursor
+        astPanX = mx - wx * astScale;
+        astPanY = my - wy * astScale;
+        redrawAst();
+    }, { passive: false });
+
+    // Toolbar buttons
+    document.getElementById('astFit')?.addEventListener('click', fitAst);
+    document.getElementById('astZoomIn')?.addEventListener('click', () => { setAstScale(astScale * 1.2); });
+    document.getElementById('astZoomOut')?.addEventListener('click', () => { setAstScale(astScale / 1.2); });
+}
+
+function resizeAstCanvas() {
+    if (!astCanvas) return;
+    const parent = astCanvas.parentElement;
+    const dpr = window.devicePixelRatio || 1;
+    const width = parent.clientWidth;
+    const height = parent.clientHeight;
+    astCanvas.width = Math.max(1, Math.floor(width * dpr));
+    astCanvas.height = Math.max(1, Math.floor(height * dpr));
+    astCanvas.style.width = width + 'px';
+    astCanvas.style.height = height + 'px';
+    astCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function setAstScale(newScale) {
+    const rect = astCanvas.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const wx = (cx - astPanX) / astScale;
+    const wy = (cy - astPanY) / astScale;
+    astScale = Math.min(2.5, Math.max(0.3, newScale));
+    astPanX = cx - wx * astScale;
+    astPanY = cy - wy * astScale;
+    redrawAst();
+}
+
+function fitAst() {
+    if (!astTree) { redrawAst(); return; }
+    // compute layout bounds to fit
+    const layout = layoutAst(astTree);
+    const bounds = computeBounds(layout);
+    const rect = astCanvas.getBoundingClientRect();
+    const margin = 40;
+    const scaleX = (rect.width - margin) / (bounds.maxX - bounds.minX || 1);
+    const scaleY = (rect.height - margin) / (bounds.maxY - bounds.minY || 1);
+    astScale = Math.min(1.8, Math.max(0.3, Math.min(scaleX, scaleY)));
+    // center
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
+    astPanX = cx - centerX * astScale;
+    astPanY = cy - centerY * astScale;
+    redrawAst(layout);
+}
+
+function redrawAst(precomputedLayout = null) {
+    if (!astCanvas || !astCtx) return;
+    const ctx = astCtx;
+    const rect = astCanvas.getBoundingClientRect();
+    // clear
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, astCanvas.width, astCanvas.height);
+    ctx.restore();
+
+    if (!astTree) return; // nothing to draw
+
+    const layout = precomputedLayout || layoutAst(astTree);
+    // apply pan/zoom
+    ctx.save();
+    const dpr = window.devicePixelRatio || 1;
+    ctx.translate(astPanX * dpr, astPanY * dpr);
+    ctx.scale(astScale * dpr, astScale * dpr);
+
+    // draw edges first
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1.5 / (window.devicePixelRatio || 1);
+    drawEdges(ctx, layout);
+
+    // draw nodes
+    drawNodes(ctx, layout);
+
+    ctx.restore();
+}
+
+function drawEdges(ctx, node) {
+    if (!node.children) return;
+    const children = node.children || [];
+
+    if (children.length <= 3) {
+        // Layout horizontal: linha reta do centro do pai para o centro do filho
+        for (const child of children) {
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y + AST_NODE_H / 2);
+            ctx.lineTo(child.x, child.y - AST_NODE_H / 2);
+            ctx.stroke();
+            drawEdges(ctx, child);
+        }
+    } else {
+        // Layout vertical: linha em L (direita do pai -> linha horizontal -> topo do filho)
+        for (const child of children) {
+            ctx.beginPath();
+            ctx.moveTo(node.x + AST_NODE_W / 2, node.y);
+            ctx.lineTo(child.x - AST_NODE_W / 2 - 10, node.y);
+            ctx.lineTo(child.x - AST_NODE_W / 2 - 10, child.y);
+            ctx.lineTo(child.x - AST_NODE_W / 2, child.y);
+            ctx.stroke();
+            drawEdges(ctx, child);
+        }
+    }
+}
+
+function drawNodes(ctx, node) {
+    // node box
+    const x = node.x - AST_NODE_W / 2;
+    const y = node.y - AST_NODE_H / 2;
+    ctx.fillStyle = '#2d2d30';
+    ctx.strokeStyle = '#3e3e42';
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, AST_NODE_W, AST_NODE_H, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // title (type)
+    ctx.font = 'bold 12px Segoe UI, sans-serif';
+    ctx.fillStyle = '#d4d4d4';
+    const type = node.type || 'Node';
+    ctx.fillText(truncate(type, 18), x + 8, y + 14);
+    // subtitle (label)
+    if (node.label && node.label !== type) {
+        ctx.font = '11px Segoe UI, sans-serif';
+        ctx.fillStyle = '#858585';
+        ctx.fillText(truncate(node.label, 28), x + 8, y + 28);
+    }
+
+    if (node.children) {
+        for (const child of node.children) {
+            drawNodes(ctx, child);
+        }
+    }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+}
+
+function truncate(s, n) {
+    s = String(s);
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
+
+// Compute tree layout (x,y for each node)
+function layoutAst(tree) {
+    // compute subtree widths first
+    computeSize(tree);
+    // assign positions
+    const startX = 0;
+    const startY = 0;
+    position(tree, startX, startY);
+    // shift so that minX is >= 0
+    const bounds = computeBounds(tree);
+    shift(tree, -bounds.minX + 10, -bounds.minY + 10);
+    return tree;
+}
+
+function computeSize(node) {
+    const children = node.children || [];
+    for (const c of children) computeSize(c);
+    if (children.length === 0) {
+        node._w = AST_NODE_W;
+        node._h = AST_NODE_H;
         return;
     }
-    if (!ast) {
-        el.classList.add('empty');
-        return;
+    // Layout híbrido: até 3 filhos em linha, depois empilha verticalmente
+    if (children.length <= 3) {
+        // Horizontal
+        const totalChildrenWidth = children.reduce((sum, c) => sum + (c._w || AST_NODE_W), 0) + (children.length - 1) * AST_H_SPACING;
+        node._w = Math.max(AST_NODE_W, totalChildrenWidth);
+        node._h = AST_NODE_H;
+    } else {
+        // Vertical para muitos filhos
+        node._w = AST_NODE_W + 150; // espaço para indent
+        const totalChildrenHeight = children.reduce((sum, c) => sum + (c._h || AST_NODE_H), 0) + (children.length - 1) * 20;
+        node._h = totalChildrenHeight;
     }
-    el.textContent = ast;
-    el.scrollTop = 0;
+}
+
+function position(node, x, y) {
+    node.x = x + AST_NODE_W / 2;
+    node.y = y + AST_NODE_H / 2;
+    const children = node.children || [];
+    if (children.length === 0) return;
+
+    if (children.length <= 3) {
+        // Layout horizontal para poucos filhos
+        let curX = x;
+        for (const c of children) {
+            const cw = c._w || AST_NODE_W;
+            position(c, curX, y + AST_NODE_H + AST_V_SPACING);
+            curX += cw + AST_H_SPACING;
+        }
+    } else {
+        // Layout vertical para muitos filhos
+        let curY = y + AST_NODE_H + AST_V_SPACING;
+        for (const c of children) {
+            const ch = c._h || AST_NODE_H;
+            position(c, x + 150, curY);
+            curY += ch + 20;
+        }
+    }
+}
+
+function shift(node, dx, dy) {
+    node.x += dx; node.y += dy;
+    if (node.children) node.children.forEach(c => shift(c, dx, dy));
+}
+
+function computeBounds(node, b = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }) {
+    b.minX = Math.min(b.minX, node.x - AST_NODE_W / 2);
+    b.maxX = Math.max(b.maxX, node.x + AST_NODE_W / 2);
+    b.minY = Math.min(b.minY, node.y - AST_NODE_H / 2);
+    b.maxY = Math.max(b.maxY, node.y + AST_NODE_H / 2);
+    if (node.children) node.children.forEach(c => computeBounds(c, b));
+    return b;
+}
+
+// ===== Tokens tree helpers =====
+function buildTokensTree(tokens) {
+    if (!tokens || tokens.length === 0) return null;
+    // Agrupar por linha
+    const byLine = new Map();
+    for (const t of tokens) {
+        const line = t.line ?? 0;
+        if (!byLine.has(line)) byLine.set(line, []);
+        byLine.get(line).push(t);
+    }
+    const lineNodes = Array.from(byLine.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([line, list]) => ({
+            type: `Linha ${line}`,
+            label: `tokens: ${list.length}`,
+            children: list.map(tok => ({
+                type: tok.type || 'TOKEN',
+                label: `${String(tok.lexeme ?? '').replace(/\n/g, '\\n')} (${tok.line}:${tok.column})`,
+                children: []
+            }))
+        }));
+    return {
+        type: 'Tokens',
+        label: `linhas: ${lineNodes.length}`,
+        children: lineNodes
+    };
+}
+
+function buildCombinedTree(astPart, tokensPart) {
+    const children = [];
+    if (astPart) {
+        children.push({ type: 'AST', label: 'Árvore Sintática', children: [astPart] });
+    }
+    if (tokensPart) {
+        children.push(tokensPart);
+    }
+    if (children.length === 0) return null;
+    return { type: 'Análise', label: '', children };
 }
 
 /**

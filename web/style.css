@@ -109,8 +109,16 @@ header p {
     color: #fff;
 }
 
-.tab-content { display: none; height: 100%; }
-.tab-content.active { display: flex; flex-direction: column; height: 100%; }
+.tab-content {
+    display: none;
+    height: 100%;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
 .section-header {
     padding: 15px 20px;
@@ -415,7 +423,46 @@ pre.output-box {
     background: transparent;
 }
 
-.token-keyword { color: #c586c0; }
-.token-type { color: #4FC1FF; }
-.token-lexeme { color: #CE9178; }
-.token-pos { color: #858585; }
+.token-keyword {
+    color: #c586c0;
+}
+
+.token-type {
+    color: #4FC1FF;
+}
+
+.token-lexeme {
+    color: #CE9178;
+}
+
+.token-pos {
+    color: #858585;
+}
+
+/* AST Canvas */
+.ast-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--light-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.ast-canvas-container {
+    position: relative;
+    flex: 1;
+    min-height: 400px;
+    height: 100%;
+    background: var(--darker-bg);
+    border-top: 1px solid var(--border-color);
+    overflow: hidden;
+    /* ocultar áreas fora do canvas quando arrastar/zoom */
+}
+
+#astCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}

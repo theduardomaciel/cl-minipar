@@ -53,14 +53,25 @@
                         <div id="output" class="output-box"></div>
                         <div id="inputContainer" class="input-container hidden">
                             <span class="input-prompt">></span>
-                            <input type="text" id="userInput" class="terminal-input" placeholder="Digite sua entrada...">
+                            <input type="text" id="userInput" class="terminal-input"
+                                placeholder="Digite sua entrada...">
                         </div>
                     </div>
                     <div id="tab-tokens" class="tab-content">
                         <pre id="tokens" class="output-box empty"></pre>
                     </div>
                     <div id="tab-ast" class="tab-content">
-                        <pre id="ast" class="output-box empty"></pre>
+                        <div class="ast-toolbar">
+                            <span>🌳 Árvore</span>
+                            <div class="ast-actions">
+                                <button id="astFit" class="btn btn-secondary">🔎 Ajustar</button>
+                                <button id="astZoomIn" class="btn btn-secondary">＋</button>
+                                <button id="astZoomOut" class="btn btn-secondary">－</button>
+                            </div>
+                        </div>
+                        <div class="ast-canvas-container">
+                            <canvas id="astCanvas"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
