@@ -1,12 +1,98 @@
-# Programa de Teste 6: QuickSort (adaptado)
-# Observação: o Parser atual não suporta atribuição a índices de lista,
-# impedindo uma implementação in-place do QuickSort. Abaixo, demonstramos E/S esperada.
+# Programa de Teste 6: QuickSort
+# Implementação do algoritmo de ordenação QuickSort
 
+class Quicksort {
+    list array;
+    
+    # Construtor
+    Quicksort(list arr) {
+        this.array = arr;
+    }
+    
+    void ordenar() {
+        this.quicksort(0, this.array.length - 1);
+    }
+    
+    void quicksort(number baixo, number alto) {
+        if (baixo < alto) {
+            number pi = this.particionar(baixo, alto);
+            
+            # Recursivamente ordenar elementos antes e depois da partição
+            this.quicksort(baixo, pi - 1);
+            this.quicksort(pi + 1, alto);
+        }
+    }
+    
+    number particionar(number baixo, number alto) {
+        number pivot = this.array[alto];
+        number i = baixo - 1;
+        number j = baixo;
+        
+        while (j < alto) {
+            if (this.array[j] < pivot) {
+                i = i + 1;
+                this.trocar(i, j);
+            }
+            j = j + 1;
+        }
+        
+        this.trocar(i + 1, alto);
+        return i + 1;
+    }
+    
+    void trocar(number i, number j) {
+        number temp = this.array[i];
+        this.array[i] = this.array[j];
+        this.array[j] = temp;
+    }
+    
+    void exibirArray() {
+        print("[");
+        number i = 0;
+        
+        while (i < this.array.length) {
+            print(this.array[i]);
+            
+            if (i < this.array.length - 1) {
+                print(", ");
+            }
+            
+            i = i + 1;
+        }
+        
+        print("]");
+    }
+}
+
+class InterfaceOrdenacao {
+    
+    # Construtor
+    InterfaceOrdenacao() {
+        # Construtor vazio
+    }
+    
+    void iniciar() {
+        print("==== Ordenação com Quicksort ====");
+        print("Insira os elementos do vetor separados por espaço:");
+        
+        # Ler entrada (simplificado)
+        # Em implementação real, parsearia a string de entrada
+        list elementos = [10, -3, -40, 80, 70, -100];
+        
+        print("Vetor original: ");
+        Quicksort qs = new Quicksort(elementos);
+        qs.exibirArray();
+        
+        # Ordenar
+        qs.ordenar();
+        
+        print("Vetor ordenado: ");
+        qs.exibirArray();
+    }
+}
+
+# Programa principal
 seq {
-    list numeros = [10, -3, -40, 80, 70, -100];
-    print("Vetor original:", numeros);
-
-    # Resultado esperado após ordenação
-    list ordenado = [-100, -40, -3, 10, 70, 80];
-    print("Vetor ordenado:", ordenado);
+    InterfaceOrdenacao interface = new InterfaceOrdenacao();
+    interface.iniciar();
 }

@@ -1,24 +1,75 @@
-# Programa de Teste 1: Calculadora Cliente-Servidor (adaptado)
-# Sintaxe MiniPar suportada pelo Lexer/Parser atual
+# Programa de Teste 1: Calculadora Cliente-Servidor
+# Cliente (computador_1) solicita operação aritmética
+# Servidor (computador_2) executa o cálculo e retorna o resultado
 
-# Declaração do canal de comunicação entre dois "computadores"
+# Declaração do canal de comunicação
 c_channel calculadora computador_1 computador_2;
 
-# Fluxo sequencial do cliente-servidor (modelo simples)
+class CalculadoraCliente {
+    # Construtor (sem parâmetros)
+    CalculadoraCliente() {
+        # inicialização se necessário
+    }
+
+    void executar() {
+        seq {
+            print("=== Calculadora Aritmética ===");
+            print("Operações disponíveis: +, -, *, /");
+            
+            string operacao = input("Digite a operação desejada: ");
+            number valor1 = input("Digite o primeiro valor: ");
+            number valor2 = input("Digite o segundo valor: ");
+            number resultado = 0;
+            
+            # Envia solicitação ao servidor
+            calculadora.send(operacao, valor1, valor2, resultado);
+            
+            print("Resultado: ");
+            print(resultado);
+        }
+    }
+}
+
+class CalculadoraServidor {
+    # Construtor (sem parâmetros)
+    CalculadoraServidor() {
+    }
+
+    void executar() {
+        seq {
+            string operacao;
+            number valor1;
+            number valor2;
+            number resultado;
+            
+            # Recebe solicitação do cliente
+            calculadora.receive(operacao, valor1, valor2, resultado);
+            
+            # Executa o cálculo
+            if (operacao == "+") {
+                resultado = valor1 + valor2;
+            } else {
+                if (operacao == "-") {
+                    resultado = valor1 - valor2;
+                } else {
+                    if (operacao == "*") {
+                        resultado = valor1 * valor2;
+                    } else {
+                        if (operacao == "/") {
+                            resultado = valor1 / valor2;
+                        }
+                    }
+                }
+            }
+            
+            # Retorna resultado ao cliente
+            calculadora.send(operacao, valor1, valor2, resultado);
+        }
+    }
+}
+
+# Programa principal
 seq {
-    print("=== Calculadora Aritmética ===");
-    print("Operações disponíveis: +, -, *, /");
-
-    string operacao = input("Digite a operação desejada: ");
-    number valor1 = input("Digite o primeiro valor: ");
-    number valor2 = input("Digite o segundo valor: ");
-    number resultado = 0;
-
-    # Cliente envia solicitação ao servidor
-    calculadora.send(operacao, valor1, valor2, resultado);
-
-    # Servidor processaria e retornaria; aqui modelamos a volta da mensagem
-    calculadora.receive(operacao, valor1, valor2, resultado);
-
-    print("Resultado:", resultado);
+    CalculadoraCliente cliente = new CalculadoraCliente();
+    cliente.executar();
 }

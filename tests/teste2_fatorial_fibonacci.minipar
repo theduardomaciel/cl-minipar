@@ -1,26 +1,77 @@
-# Programa de Teste 2: Execução Paralela (Fatorial e Fibonacci)
-# Uso de 'par { ... }' com funções recursivas
+# Programa de Teste 2: Execução Paralela
+# Thread 1: Cálculo do Fatorial
+# Thread 2: Cálculo da Série de Fibonacci
 
-func fatorial(number n) -> number {
-    if (n <= 1) {
-        return 1;
-    } else {
-        return n * fatorial(n - 1);
+class Fatorial {
+    number numero;
+    
+    # Construtor
+    Fatorial(number n) {
+        this.numero = n;
+    }
+    
+    number calcular() {
+        number resultado = 1;
+        number i = 1;
+        
+        while (i <= this.numero) {
+            resultado = resultado * i;
+            i = i + 1;
+        }
+        
+        return resultado;
+    }
+    
+    void executar() {
+        print("=== Cálculo do Fatorial ===");
+        number n = input("Digite um número para calcular o fatorial: ");
+        this.numero = n;
+        number resultado = this.calcular();
+        print("Fatorial de ");
+        print(n);
+        print(" = ");
+        print(resultado);
     }
 }
 
-func fibonacci(number n) -> number {
-    if (n <= 1) {
-        return n;
-    } else {
-        return fibonacci(n - 1) + fibonacci(n - 2);
+class Fibonacci {
+    number limite;
+    
+    # Construtor
+    Fibonacci(number lim) {
+        this.limite = lim;
+    }
+    
+    void executar() {
+        print("=== Série de Fibonacci ===");
+        number n = input("Digite quantos números da série deseja: ");
+        this.limite = n;
+        
+        number a = 0;
+        number b = 1;
+        number i = 0;
+        
+        print("Série de Fibonacci: ");
+        
+        while (i < this.limite) {
+            print(a);
+            print(" ");
+            
+            number temp = a + b;
+            a = b;
+            b = temp;
+            i = i + 1;
+        }
     }
 }
 
+# Programa principal - Execução Paralela
 par {
-    print("=== Thread 1: Fatorial ===");
-    print("Fatorial de 5 =", fatorial(5));
-
-    print("=== Thread 2: Fibonacci ===");
-    print("Fibonacci(10) =", fibonacci(10));
+    # Thread 1: Cálculo do Fatorial
+    Fatorial fatorial = new Fatorial(5);
+    fatorial.executar();
+    
+    # Thread 2: Cálculo da Série de Fibonacci
+    Fibonacci fibonacci = new Fibonacci(10);
+    fibonacci.executar();
 }

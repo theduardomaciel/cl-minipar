@@ -1,0 +1,18 @@
+# Programa de Teste 4: Função XOR (booleana)
+
+func xor(bool a, bool b) -> bool {
+    return (a && !b) || (!a && b);
+}
+
+seq {
+    print("=== Tabela Verdade XOR ===");
+
+    list entradas = [[false, false], [false, true], [true, false], [true, true]];
+
+    for (list entrada in entradas) {
+        bool a = entrada[0];
+        bool b = entrada[1];
+        bool r = xor(a, b);
+        print("Entrada:", a, ",", b, "| Saída:", r);
+    }
+}
