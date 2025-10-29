@@ -23,14 +23,15 @@ class Fatorial {
     }
     
     void executar() {
-        print("=== Cálculo do Fatorial ===");
-        number n = input("Digite um número para calcular o fatorial: ");
-        this.numero = n;
+        println("=== Cálculo do Fatorial ===");
+        # number n = input("Digite um número para calcular o fatorial: ");
+        # this.numero = n;
         number resultado = this.calcular();
         print("Fatorial de ");
-        print(n);
+        print(this.numero);
         print(" = ");
         print(resultado);
+        println(" ");
     }
 }
 
@@ -43,17 +44,17 @@ class Fibonacci {
     }
     
     void executar() {
-        print("=== Série de Fibonacci ===");
-        number n = input("Digite quantos números da série deseja: ");
-        this.limite = n;
+        println("=== Série de Fibonacci ===");
+        # number n = input("Digite quantos números da série deseja: ");
+        # this.limite = n;
         
         number a = 0;
         number b = 1;
         number i = 0;
         
-        print("Série de Fibonacci: ");
+        println("Série de Fibonacci: ");
         
-        while (i < this.limite) {
+        while (i <= this.limite) {
             print(a);
             print(" ");
             
