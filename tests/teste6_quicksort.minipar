@@ -72,21 +72,22 @@ class InterfaceOrdenacao {
     }
     
     void iniciar() {
-        print("==== Ordenação com Quicksort ====");
-        print("Insira os elementos do vetor separados por espaço:");
+        println("==== Ordenação com Quicksort ====");
+        println("Insira os elementos do vetor separados por espaço:");
         
         # Ler entrada (simplificado)
         # Em implementação real, parsearia a string de entrada
         list elementos = [10, -3, -40, 80, 70, -100];
         
-        print("Vetor original: ");
+        println("Vetor original: ");
         Quicksort qs = new Quicksort(elementos);
         qs.exibirArray();
         
         # Ordenar
         qs.ordenar();
         
-        print("Vetor ordenado: ");
+        println(" ");
+        println("Vetor ordenado: ");
         qs.exibirArray();
     }
 }
