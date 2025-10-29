@@ -78,6 +78,8 @@ public enum TokenType {
     PAR,         // Paralelo
     C_CHANNEL,   // Canal de comunicação
     S_CHANNEL,   // Canal de sincronização
+    SEND,        // Envio de mensagem
+    RECEIVE,     // Recebimento de mensagem
     IN,          // Palavra-chave 'in'
 
     // Controle

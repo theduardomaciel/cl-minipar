@@ -1,0 +1,41 @@
+c_channel calculadora computador_1 computador_2;
+
+class CalculadoraServidor {
+    CalculadoraServidor() {
+        print("Servidor inicializado!");
+    }
+
+    void executar() {
+        seq {
+            string operacao;
+            number valor1;
+            number valor2;
+            number resultado;
+            calculadora.receive(operacao, valor1, valor2, resultado);
+
+            print("Recebido: ", operacao);
+
+            if (operacao == "+") {
+                resultado = valor1 + valor2;
+            } else {
+                if (operacao == "-") {
+                    resultado = valor1 - valor2;
+                } else {
+                    if (operacao == "*") {
+                        resultado = valor1 * valor2;
+                    } else {
+                        if (operacao == "/") {
+                            resultado = valor1 / valor2;
+                        }
+                    }
+                }
+            }
+            calculadora.send(operacao, valor1, valor2, resultado);
+        }
+    }
+}
+
+seq {
+    CalculadoraServidor servidor = new CalculadoraServidor();
+    servidor.executar();
+}

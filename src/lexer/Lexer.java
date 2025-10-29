@@ -72,6 +72,8 @@ public class Lexer {
         keywords.put("par", TokenType.PAR);
         keywords.put("c_channel", TokenType.C_CHANNEL);
         keywords.put("s_channel", TokenType.S_CHANNEL);
+        keywords.put("send", TokenType.SEND);
+        keywords.put("receive", TokenType.RECEIVE);
     }
 
     /**

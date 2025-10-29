@@ -1,0 +1,23 @@
+c_channel calculadora computador_1 computador_2;
+
+class CalculadoraCliente {
+    void executar() {
+        seq {
+            print("=== Calculadora Aritmética ===");
+            print("Operações disponíveis: +, -, *, /");
+            string operacao = input("Digite a operação desejada: ");
+            number valor1 = input("Digite o primeiro valor: ");
+            number valor2 = input("Digite o segundo valor: ");
+            number resultado = 0;
+            calculadora.send(operacao, valor1, valor2, resultado);
+            calculadora.receive(operacao, valor1, valor2, resultado);
+            print("Resultado: ");
+            print(resultado);
+        }
+    }
+}
+
+seq {
+    CalculadoraCliente cliente = new CalculadoraCliente();
+    cliente.executar();
+}

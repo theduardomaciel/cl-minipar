@@ -175,7 +175,7 @@ calculadora.send (operação, valor1, valor2, resultado)
 ---- Execução: Servidor (computador 2)
 # Computador servidor
 calculadora.receive (operação, valor1, valor2, resultado)
-# Computador 2 recebe a solicitação do cliente (computador 1) e executa o cálculo e retorna o resultado ao cliente (computador 1)
+# Computador 2 recebe a solicitação do cliente (computador 1), executa o cálculo e retorna o resultado ao cliente (computador 1)
 ```
 
 </details>

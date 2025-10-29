@@ -19,19 +19,19 @@ public class Environment {
     }
 
     /** Define uma variável neste escopo. */
-    public void define(String name, Object value) {
+    public synchronized void define(String name, Object value) {
         values.put(name, value);
     }
 
     /** Obtém o valor de uma variável procurando no escopo atual e ancestrais. */
-    public Object get(String name) {
+    public synchronized Object get(String name) {
         if (values.containsKey(name)) return values.get(name);
         if (enclosing != null) return enclosing.get(name);
         throw new RuntimeException("Variável não definida: " + name);
     }
 
     /** Atribui valor a uma variável existente (procura no encadeamento). */
-    public void assign(String name, Object value) {
+    public synchronized void assign(String name, Object value) {
         if (values.containsKey(name)) {
             values.put(name, value);
             return;

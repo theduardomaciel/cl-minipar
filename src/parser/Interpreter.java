@@ -111,11 +111,46 @@ public class Interpreter {
     private Object execCanalDecl(CanalDecl c) {
         // Se for forma com parênteses, criar um canal para cada nome; caso contrário, primeiro nome é o canal
         if (c.nomes == null || c.nomes.isEmpty()) return null;
-        if (c.nomes.size() >= 1) {
-            // Na sintaxe "c_channel canal comp1 comp2", o primeiro é o canal
+        if (c.nomes.size() >= 3) {
+            // Na sintaxe "c_channel canal comp1 comp2", criar canal TCP
+            String canalName = c.nomes.get(0);
+            String comp1 = c.nomes.get(1);
+            String comp2 = c.nomes.get(2);
+            
+            // Pergunta ao usuário se este processo é servidor ou cliente
+            System.out.println("\n[Configuração do Canal TCP '" + canalName + "']");
+            System.out.println("Este processo é (1) Servidor ou (2) Cliente?");
+            System.out.print("Digite 1 ou 2: ");
+            
+            try {
+                String resposta = reader.readLine().trim();
+                boolean isServer = resposta.equals("1");
+                
+                TCPChannel tcpChannel;
+                if (isServer) {
+                    // Servidor: escuta em uma porta
+                    System.out.print("Digite a porta para escutar (ex: 8080): ");
+                    int port = Integer.parseInt(reader.readLine().trim());
+                    tcpChannel = new TCPChannel(canalName, port, true);
+                    tcpChannel.start(null);
+                } else {
+                    // Cliente: conecta ao servidor
+                    System.out.print("Digite o host do servidor (ex: localhost): ");
+                    String host = reader.readLine().trim();
+                    System.out.print("Digite a porta do servidor: ");
+                    int port = Integer.parseInt(reader.readLine().trim());
+                    tcpChannel = new TCPChannel(canalName, port, false);
+                    tcpChannel.start(host);
+                }
+                
+                env.define(canalName, tcpChannel);
+            } catch (Exception e) {
+                throw new RuntimeException("Erro ao configurar canal TCP: " + e.getMessage());
+            }
+        } else if (c.nomes.size() >= 1) {
+            // Canal local (mesmo processo) usando BlockingQueue
             String first = c.nomes.get(0);
             env.define(first, new Channel(first));
-            // Nomes extras não usados na semântica mínima
         }
         return null;
     }
@@ -126,15 +161,26 @@ public class Interpreter {
     }
 
     private Object execPar(List<ASTNode> statements) {
-        // Executa cada statement em uma thread com cópia do ambiente atual (sem compartilhamento)
+        // IMPLEMENTAÇÃO COM PARALELISMO REAL E AGRUPAMENTO INTELIGENTE
+        // Agrupa VarDecl + próximos statements que usam a variável
+        List<List<ASTNode>> groups = groupStatements(statements);
+        
         List<Thread> threads = new ArrayList<>();
-        for (ASTNode s : statements) {
-            Environment child = new Environment(env); // herda leitura do pai
+        List<Throwable> errors = new ArrayList<>();
+        Environment sharedEnv = new Environment(env);
+        
+        for (List<ASTNode> group : groups) {
             Thread t = new Thread(() -> {
                 Environment prev = this.env;
                 try {
-                    this.env = child;
-                    exec(s);
+                    this.env = sharedEnv;
+                    for (ASTNode s : group) {
+                        exec(s);
+                    }
+                } catch (Throwable e) {
+                    synchronized (errors) {
+                        errors.add(e);
+                    }
                 } finally {
                     this.env = prev;
                 }
@@ -142,10 +188,43 @@ public class Interpreter {
             threads.add(t);
             t.start();
         }
+        
+        // Aguarda todas as threads terminarem
         for (Thread t : threads) {
             try { t.join(); } catch (InterruptedException ignored) {}
         }
+        
+        // Propaga primeiro erro se houver
+        if (!errors.isEmpty()) {
+            Throwable first = errors.get(0);
+            if (first instanceof RuntimeException) throw (RuntimeException) first;
+            throw new RuntimeException("Erro em thread paralela", first);
+        }
+        
         return null;
+    }
+    
+    // Agrupa statements relacionados para execução na mesma thread
+    private List<List<ASTNode>> groupStatements(List<ASTNode> statements) {
+        List<List<ASTNode>> groups = new ArrayList<>();
+        int i = 0;
+        
+        while (i < statements.size()) {
+            List<ASTNode> group = new ArrayList<>();
+            group.add(statements.get(i));
+            
+            // Se é VarDecl, agrupa com o próximo statement (provavelmente usa a variável)
+            if (statements.get(i) instanceof VarDecl && i + 1 < statements.size()) {
+                group.add(statements.get(i + 1));
+                i += 2;
+            } else {
+                i++;
+            }
+            
+            groups.add(group);
+        }
+        
+        return groups;
     }
 
     private Object execIf(IfStmt i) {
@@ -209,17 +288,22 @@ public class Interpreter {
     private Object execPrint(PrintStmt p) {
         List<Object> vals = new ArrayList<>();
         for (ASTNode a : p.arguments) vals.add(eval(a));
+        
+        if (vals.isEmpty()) {
+            System.out.println();
+            return null;
+        }
+        
         if (vals.size() == 1) {
-            System.out.println(stringify(vals.get(0)));
+            System.out.print(stringify(vals.get(0)));
         } else {
             // imprime com espaço entre argumentos
-            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < vals.size(); i++) {
-                if (i > 0) sb.append(" ");
-                sb.append(stringify(vals.get(i)));
+                if (i > 0) System.out.print(" ");
+                System.out.print(stringify(vals.get(i)));
             }
-            System.out.println(sb);
         }
+        System.out.println(); // sempre quebra linha no final
         return null;
     }
 
@@ -423,21 +507,50 @@ public class Interpreter {
 
     private void execSend(SendStmt s) {
         Object ch = eval(s.channel);
-        if (!(ch instanceof Channel c)) throw new RuntimeException("Objeto não é canal");
-        List<Object> args = new ArrayList<>();
-        for (ASTNode a : s.arguments) args.add(eval(a));
-        c.send(args);
+        
+        // Avalia cada argumento e adiciona à mensagem
+        List<Object> messageToSend = new ArrayList<>();
+        for (ASTNode a : s.arguments) {
+            Object val = eval(a);
+            messageToSend.add(val);
+        }
+        
+        // Suporta tanto Channel local quanto TCPChannel
+        if (ch instanceof Channel c) {
+            c.send(messageToSend);
+        } else if (ch instanceof TCPChannel tcp) {
+            try {
+                tcp.send(messageToSend);
+            } catch (Exception e) {
+                throw new RuntimeException("Erro ao enviar via TCP: " + e.getMessage());
+            }
+        } else {
+            throw new RuntimeException("Objeto não é canal: " + ch);
+        }
     }
 
     private void execReceive(ReceiveStmt r) {
         Object ch = eval(r.channel);
-        if (!(ch instanceof Channel c)) throw new RuntimeException("Objeto não é canal");
-        List<Object> msg = c.receive();
-        int n = Math.min(msg.size(), r.arguments.size());
-        for (int i = 0; i < n; i++) {
+        List<Object> msg;
+        
+        // Suporta tanto Channel local quanto TCPChannel
+        if (ch instanceof Channel c) {
+            msg = c.receive();
+        } else if (ch instanceof TCPChannel tcp) {
+            try {
+                msg = tcp.receive();
+            } catch (Exception e) {
+                throw new RuntimeException("Erro ao receber via TCP: " + e.getMessage());
+            }
+        } else {
+            throw new RuntimeException("Objeto não é canal: " + ch);
+        }
+        
+        // Distribui cada elemento da mensagem recebida para as variáveis correspondentes
+        int minSize = Math.min(r.arguments.size(), msg.size());
+        for (int i = 0; i < minSize; i++) {
             ASTNode target = r.arguments.get(i);
-            Object value = msg.get(i);
-            assignToTarget(target, value);
+            assignToTarget(target, msg.get(i));
         }
     }
 
@@ -489,8 +602,28 @@ public class Interpreter {
             if (d % 1 == 0) return String.valueOf(d.longValue());
             return d.toString();
         }
-        if (v instanceof List<?> l) return l.toString();
-        if (v instanceof Map<?,?> m) return m.toString();
+        if (v instanceof Integer i) return i.toString();
+        if (v instanceof Boolean b) return b.toString();
+        if (v instanceof String s) return s;
+        if (v instanceof List<?> l) {
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < l.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(stringify(l.get(i)));
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+        if (v instanceof Map<?,?> m) {
+            StringBuilder sb = new StringBuilder("{");
+            int i = 0;
+            for (Map.Entry<?,?> e : m.entrySet()) {
+                if (i++ > 0) sb.append(", ");
+                sb.append(stringify(e.getKey())).append(": ").append(stringify(e.getValue()));
+            }
+            sb.append("}");
+            return sb.toString();
+        }
         return String.valueOf(v);
     }
 

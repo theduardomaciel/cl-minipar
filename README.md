@@ -78,7 +78,7 @@ java -cp out Main
 Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/` e `tests_simple/`):
 
 ```bash
-java -cp out Main tests/teste1_calculadora.minipar
+java -cp out Main tests/teste6_quicksort.minipar
 # ou
 java -cp out Main tests_simple/teste5_recomendacao.minipar
 ```
