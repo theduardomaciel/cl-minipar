@@ -119,6 +119,8 @@ function handleClearOrStop() {
 function stopExecution() {
     if (confirm('Deseja realmente parar a execução?')) {
         stopPolling();
+        hideInputField();
+        waitingForInput = false;
         appendToOutput('\n⚠️ Execução interrompida pelo usuário', 'output-warning');
         resetUIAfterExecution();
     }
@@ -244,7 +246,10 @@ function showInputField(prompt = '') {
  */
 function hideInputField() {
     const inputContainer = document.getElementById('inputContainer');
+    const userInput = document.getElementById('userInput');
+    
     inputContainer.classList.add('hidden');
+    userInput.value = ''; // Limpa o campo ao esconder
 }
 
 /**
