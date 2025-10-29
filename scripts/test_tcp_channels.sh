@@ -3,7 +3,9 @@
 # Script para testar TCPChannel
 # Compila e executa servidor e cliente em terminais separados
 
-WORKSPACE="$(cd "$(dirname "$0")" && pwd)"
+# Navegar para o diretório raiz do projeto (um nível acima de scripts)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WORKSPACE="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$WORKSPACE"
 
 echo "======================================================================"

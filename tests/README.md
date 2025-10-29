@@ -114,14 +114,5 @@ Para testar o Parser e Lexer com estes arquivos:
 javac -d bin src/**/*.java
 
 # Execute o interpretador com um arquivo de teste
-java -cp bin Main tests/teste1_calculadora.minipar
+java -cp bin Main tests/teste6_quicksort.minipar
 ```
-
-## Notas de Implementação
-
-- Alguns recursos foram simplificados para focar na sintaxe e estrutura
-- Funções matemáticas complexas (exp, sqrt) foram aproximadas
-- Geração de números aleatórios usa valores fixos
-- Input/Output podem precisar de implementação específica no interpretador
-- Listas usam `.length` para obter tamanho
-- Comentários de linha usam `#`
