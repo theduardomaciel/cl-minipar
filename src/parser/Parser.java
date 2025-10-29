@@ -309,8 +309,6 @@ public class Parser {
         if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.BREAK)) return new BreakStmt();
         if (match(TokenType.CONTINUE)) return new ContinueStmt();
-        if (match(TokenType.SEND)) return sendStatement();
-        if (match(TokenType.RECEIVE)) return receiveStatement();
         if (match(TokenType.SEQ)) return seqBlock();
         if (match(TokenType.PAR)) return parBlock();
         if (match(TokenType.LEFT_BRACE)) {
@@ -417,44 +415,6 @@ public class Parser {
         consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos de print");
         consume(TokenType.SEMICOLON, "Esperado ';' ao final do print");
         return new PrintStmt(args, newline);
-    }
-
-    /**
-     * Realiza o parsing de uma instrução send.
-     * Sintaxe: send canal <- [dados] ou send canal <- expressao
-     *
-     * @return SendStmt representando o send.
-     */
-    private SendStmt sendStatement() {
-        ASTNode channel = primary(); // Nome do canal
-        consume(TokenType.LESS, "Esperado '<' após send");
-        consume(TokenType.MINUS, "Esperado '-' formando '<-'");
-        
-        // Parse a mensagem (pode ser lista ou expressão única)
-        List<ASTNode> args = new ArrayList<>();
-        ASTNode message = expression();
-        args.add(message);
-        
-        consume(TokenType.SEMICOLON, "Esperado ';' ao final do send");
-        return new SendStmt(channel, args);
-    }
-
-    /**
-     * Realiza o parsing de uma instrução receive.
-     * Sintaxe: receive var <- canal
-     *
-     * @return ReceiveStmt representando o receive.
-     */
-    private ReceiveStmt receiveStatement() {
-        ASTNode target = primary(); // Variável que receberá a mensagem
-        consume(TokenType.LESS, "Esperado '<' após receive");
-        consume(TokenType.MINUS, "Esperado '-' formando '<-'");
-        ASTNode channel = primary(); // Canal de onde receber
-        consume(TokenType.SEMICOLON, "Esperado ';' ao final do receive");
-        
-        List<ASTNode> args = new ArrayList<>();
-        args.add(target);
-        return new ReceiveStmt(channel, args);
     }
 
     /**

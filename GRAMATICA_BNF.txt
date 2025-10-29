@@ -89,9 +89,9 @@
 <declaracao_canal> ::= "c_channel" "(" <identificador> { "," <identificador> } ")" ";"
                      | "c_channel" <identificador> <identificador> <identificador> ";"
 
-<comando_send> ::= <identificador> "." "send" "(" [ <argumentos> ] ")"
+<comando_send> ::= <identificador> "." "send" "(" <argumentos> ")" ";"
 
-<comando_receive> ::= <identificador> "." "receive" "(" [ <argumentos> ] ")"
+<comando_receive> ::= <identificador> "." "receive" "(" <argumentos> ")" ";"
 
 ## EXPRESSÕES
 

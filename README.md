@@ -42,7 +42,7 @@ src/
     └── Program.java
 ```
 
-### Principais conceitos:
+### Principais conceitos
 
 - **Lexer:** realiza a varredura do código-fonte e converte-o em uma lista de *tokens*.
 - **Parser:** analisa a sequência de tokens e constrói a árvore sintática abstrata (AST).
@@ -66,7 +66,7 @@ Compile as fontes (gera as classes em `out/`):
 
 ```bash
 mkdir -p out
-javac -encoding UTF-8 -d out src/Main.java src/lexer/*.java src/parser/*.java
+javac -encoding UTF-8 -d out src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
 ```
 
 Execute em modo interativo (REPL):
@@ -75,12 +75,10 @@ Execute em modo interativo (REPL):
 java -cp out Main
 ```
 
-Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/` e `tests_simple/`):
+Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/`):
 
 ```bash
 java -cp out Main tests/teste6_quicksort.minipar
-# ou
-java -cp out Main tests_simple/teste5_recomendacao.minipar
 ```
 
 ### Saída esperada
@@ -100,31 +98,6 @@ Token(EOF, "", line=1)
   (Binary +
     (Literal 3)
     (Literal 5)))
-```
-
----
-
-## 🛠️ Setup & Execução
-
-### 1. Clonar repositório
-
-```bash
-git clone https://github.com/theduardomaciel/cl-minipar.git
-cd cl-minipar
-```
-
-### 2. Compilar o projeto
-
-```bash
-mkdir -p out
-javac -encoding UTF-8 -d out src/Main.java src/lexer/*.java src/parser/*.java
-```
-
-### 3. Executar com arquivo de teste
-
-```bash
-java -cp out Main tests/teste1_calculadora.minipar
-# ou qualquer outro arquivo .minipar
 ```
 
 > [!TIP]
@@ -176,8 +149,8 @@ O vídeo mostra:
 * [x] Implementação do Lexer
 * [x] Implementação do Parser
 * [x] Impressão da AST
-* [ ] Implementar análise semântica (escopos e tipos)
-* [ ] Implementar interpretador orientado a objetos
+* [x] Implementar análise semântica (escopos e tipos)
+* [x] Implementar interpretador orientado a objetos
 * [ ] Interface web com visualização da AST
 
 ## 👥 Equipe

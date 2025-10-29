@@ -121,9 +121,17 @@ public class Main {
             System.out.println("\n▶️  FASE 3: EXECUÇÃO (INTERPRETER)");
             System.out.println("─".repeat(70));
 
-            Interpreter interpreter = new Interpreter();
-            interpreter.execute(ast);
+            // ===== FASE 3: EXECUÇÃO =====
+            System.out.println("\n▶️  FASE 3: EXECUÇÃO (INTERPRETER)");
+            System.out.println("─".repeat(70));
 
+            try {
+                Interpreter interpreter = new Interpreter();
+                interpreter.execute(ast);
+            } catch (Exception e) {
+                System.err.println("❌ Erro durante a execução:");
+                System.err.println("   " + e.getMessage());
+            }
         } catch (Exception e) {
             System.err.println("❌ Erro na análise sintática:");
             System.err.println("   " + e.getMessage());
