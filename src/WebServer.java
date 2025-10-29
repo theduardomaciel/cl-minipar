@@ -60,6 +60,9 @@ public class WebServer {
         server.createContext("/session/status", new SessionStatusHandler());
         server.createContext("/session/input", new ProvideInputHandler());
         
+    // Endpoint para análise (tokens e AST)
+    server.createContext("/analyze", new AnalyzeHandler());
+        
         server.setExecutor(null); // usa executor padrão
         server.start();
         
@@ -69,6 +72,98 @@ public class WebServer {
         System.out.println("\n🌐 Servidor rodando em: http://localhost:" + PORT);
         System.out.println("📝 Acesse a interface web no navegador");
         System.out.println("\nPressione Ctrl+C para encerrar o servidor\n");
+    }
+
+    /**
+     * Handler para retornar Tokens e AST (sem executar o programa)
+     */
+    static class AnalyzeHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+
+            // Ler o código do corpo da requisição
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
+            BufferedReader br = new BufferedReader(isr);
+            String code = br.lines().collect(Collectors.joining("\n"));
+
+            String jsonResponse;
+            try {
+                Lexer lexer = new Lexer(code);
+                java.util.List<Token> tokens = lexer.scanTokens();
+
+                Parser parser = new Parser(tokens);
+                Program program = parser.parse();
+
+                // Montar JSON
+                String tokensJson = tokensToJson(tokens);
+                String astStr = program != null ? program.toString() : "";
+                jsonResponse = String.format("{\"success\": true, \"tokens\": %s, \"ast\": %s, \"error\": \"\"}",
+                        tokensJson, escapeJson(astStr));
+            } catch (Exception e) {
+                // Em caso de erro, ainda podemos tentar retornar os tokens (se possível)
+                String tokensJson = "[]";
+                try {
+                    Lexer lexer = new Lexer(code);
+                    java.util.List<Token> partialTokens = lexer.scanTokens();
+                    tokensJson = tokensToJson(partialTokens);
+                } catch (Exception ignored) {}
+
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                String err = e.getMessage() != null ? ("Erro: " + e.getMessage() + "\n\n" + sw) : sw.toString();
+                jsonResponse = String.format("{\"success\": false, \"tokens\": %s, \"ast\": \"\", \"error\": %s}",
+                        tokensJson, escapeJson(err));
+            }
+
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(200, response.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response);
+            }
+        }
+
+        private String tokensToJson(java.util.List<Token> tokens) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            for (int i = 0; i < tokens.size(); i++) {
+                Token t = tokens.get(i);
+                sb.append("{\"type\":\"").append(t.type()).append("\",")
+                  .append("\"lexeme\":").append(escapeJson(t.lexeme())).append(",")
+                  .append("\"line\":").append(t.line()).append(",")
+                  .append("\"column\":").append(t.column()).append("}");
+                if (i < tokens.size() - 1) sb.append(",");
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+
+        private String escapeJson(String str) {
+            if (str == null || str.isEmpty()) return "\"\"";
+            StringBuilder sb = new StringBuilder();
+            sb.append('"');
+            for (char c : str.toCharArray()) {
+                switch (c) {
+                    case '"': sb.append("\\\""); break;
+                    case '\\': sb.append("\\\\"); break;
+                    case '\b': sb.append("\\b"); break;
+                    case '\f': sb.append("\\f"); break;
+                    case '\n': sb.append("\\n"); break;
+                    case '\r': sb.append("\\r"); break;
+                    case '\t': sb.append("\\t"); break;
+                    default:
+                        if (c < ' ') sb.append(String.format("\\u%04x", (int)c));
+                        else sb.append(c);
+                }
+            }
+            sb.append('"');
+            return sb.toString();
+        }
     }
     
     /**

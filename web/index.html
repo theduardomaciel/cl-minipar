@@ -38,16 +38,29 @@
 
             <div class="output-section">
                 <div class="section-header">
-                    <h2>📤 Saída</h2>
+                    <h2>📤 Resultados</h2>
                     <button id="clearOutput" class="btn btn-secondary">
-                        🗑️ Limpar Saída
+                        🗑️ Limpar
                     </button>
                 </div>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="tab-output">🖥️ Saída</button>
+                    <button class="tab-btn" data-tab="tab-tokens">🔤 Tokens</button>
+                    <button class="tab-btn" data-tab="tab-ast">🌳 Árvore Sintática</button>
+                </div>
                 <div class="output-container">
-                    <div id="output" class="output-box"></div>
-                    <div id="inputContainer" class="input-container hidden">
-                        <span class="input-prompt">></span>
-                        <input type="text" id="userInput" class="terminal-input" placeholder="Digite sua entrada...">
+                    <div id="tab-output" class="tab-content active">
+                        <div id="output" class="output-box"></div>
+                        <div id="inputContainer" class="input-container hidden">
+                            <span class="input-prompt">></span>
+                            <input type="text" id="userInput" class="terminal-input" placeholder="Digite sua entrada...">
+                        </div>
+                    </div>
+                    <div id="tab-tokens" class="tab-content">
+                        <pre id="tokens" class="output-box empty"></pre>
+                    </div>
+                    <div id="tab-ast" class="tab-content">
+                        <pre id="ast" class="output-box empty"></pre>
                     </div>
                 </div>
             </div>

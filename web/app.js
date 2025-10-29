@@ -5,6 +5,7 @@ let inputQueue = [];
 let waitingForInput = false;
 let currentSessionId = null;
 let pollingInterval = null;
+let activeTab = 'tab-output';
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function () {
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupEventListeners();
     loadInitialExample();
     setupTerminalInput();
+    setupTabs();
 });
 
 /**
@@ -67,6 +69,26 @@ function setupEventListeners() {
         if (e.target === this) {
             closeExamplesModal();
         }
+    });
+}
+
+/**
+ * Tabs: alterna entre Saída, Tokens e AST
+ */
+function setupTabs() {
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.getAttribute('data-tab');
+
+            // Toggle btns
+            buttons.forEach(b => b.classList.toggle('active', b === btn));
+            // Toggle content
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.toggle('active', el.id === tab);
+            });
+            activeTab = tab;
+        });
     });
 }
 
@@ -180,6 +202,12 @@ function clearOutput() {
     hideInputField();
     inputQueue = [];
     waitingForInput = false;
+
+    // Limpar Tokens e AST
+    const tokensEl = document.getElementById('tokens');
+    const astEl = document.getElementById('ast');
+    if (tokensEl) { tokensEl.textContent = ''; tokensEl.classList.add('empty'); }
+    if (astEl) { astEl.textContent = ''; astEl.classList.add('empty'); }
 }
 
 /**
@@ -306,6 +334,11 @@ async function runCode() {
     outputDiv.classList.remove('empty');
 
     try {
+        // Atualizar Tokens e AST (análise léxica e sintática)
+        analyzeAndRender(code).catch(err => {
+            console.warn('Falha na análise (tokens/AST):', err);
+        });
+
         // Iniciar sessão de execução interativa
         const startResponse = await fetch(`${API_URL}/session/start`, {
             method: 'POST',
@@ -333,6 +366,62 @@ async function runCode() {
         );
         resetUIAfterExecution();
     }
+}
+
+/**
+ * Chama o backend para obter tokens e AST e renderiza nas respectivas abas
+ */
+async function analyzeAndRender(code) {
+    const res = await fetch(`${API_URL}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        body: code
+    });
+    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+    const data = await res.json();
+
+    // Render Tokens
+    renderTokens(data.tokens || [], data.error);
+    // Render AST
+    renderAST(data.ast || '', data.error);
+}
+
+function renderTokens(tokens, error) {
+    const el = document.getElementById('tokens');
+    if (!el) return;
+    el.classList.remove('empty');
+    if (error) {
+        el.textContent = `Erro na análise léxica/sintática:\n${error}`;
+        return;
+    }
+    if (!tokens || tokens.length === 0) {
+        el.classList.add('empty');
+        return;
+    }
+    const lines = tokens.map(t => {
+        const type = t.type || '';
+        const lex = (t.lexeme ?? '').replace(/\n/g, '\\n');
+        const pos = `${t.line}:${t.column}`;
+        return `${pos.padEnd(7)} ${String(type).padEnd(18)} ${lex}`;
+    });
+    el.textContent = lines.join('\n');
+    el.scrollTop = 0;
+}
+
+function renderAST(ast, error) {
+    const el = document.getElementById('ast');
+    if (!el) return;
+    el.classList.remove('empty');
+    if (error) {
+        el.textContent = `Erro na análise:\n${error}`;
+        return;
+    }
+    if (!ast) {
+        el.classList.add('empty');
+        return;
+    }
+    el.textContent = ast;
+    el.scrollTop = 0;
 }
 
 /**
