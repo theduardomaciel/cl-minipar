@@ -686,14 +686,16 @@ class IndexAssign extends ASTNode {
  */
 class PrintStmt extends ASTNode {
     public List<ASTNode> arguments;
+    public boolean newline;
 
-    public PrintStmt(List<ASTNode> arguments) {
+    public PrintStmt(List<ASTNode> arguments, boolean newline) {
         this.arguments = arguments;
+        this.newline = newline;
     }
 
     @Override
     public String toString() {
-        return "Print" + arguments;
+        return (newline ? "Println" : "Print") + arguments;
     }
 }
 

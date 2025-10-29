@@ -6,8 +6,8 @@ c_channel calculadora computador_1 computador_2;
 
 # Fluxo sequencial do cliente-servidor (modelo simples)
 seq {
-    print("=== Calculadora Aritmética ===");
-    print("Operações disponíveis: +, -, *, /");
+    println("=== Calculadora Aritmética ===");
+    println("Operações disponíveis: +, -, *, /");
 
     string operacao = input("Digite a operação desejada: ");
     number valor1 = input("Digite o primeiro valor: ");
@@ -20,5 +20,5 @@ seq {
     # Servidor processaria e retornaria; aqui modelamos a volta da mensagem
     calculadora.receive(operacao, valor1, valor2, resultado);
 
-    print("Resultado:", resultado);
+    println("Resultado:", resultado);
 }

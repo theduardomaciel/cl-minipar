@@ -3,13 +3,13 @@
 
 # Imprime itens do catálogo que não aparecem nos dois primeiros itens do histórico
 func recomendar(list historico, list catalogo) -> void {
-    print("Produtos recomendados para você:");
+    println("Produtos recomendados para você:");
 
     for (string p in catalogo) {
         if (p == historico[0] || p == historico[1]) {
             # pula itens já vistos
         } else {
-            print(p);
+            println(p);
         }
     }
 }

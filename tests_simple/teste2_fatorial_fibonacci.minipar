@@ -18,9 +18,9 @@ func fibonacci(number n) -> number {
 }
 
 par {
-    print("=== Thread 1: Fatorial ===");
-    print("Fatorial de 5 =", fatorial(5));
+    println("=== Thread 1: Fatorial ===");
+    println("Fatorial de 5 =", fatorial(5));
 
-    print("=== Thread 2: Fibonacci ===");
-    print("Fibonacci(10) =", fibonacci(10));
+    println("=== Thread 2: Fibonacci ===");
+    println("Fibonacci(10) =", fibonacci(10));
 }

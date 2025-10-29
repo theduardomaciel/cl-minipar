@@ -304,7 +304,8 @@ public class Parser {
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.DO)) return doWhileStatement();
         if (match(TokenType.FOR)) return forStatement();
-        if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.PRINT)) return printStatement(false);
+        if (match(TokenType.PRINTLN)) return printStatement(true);
         if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.BREAK)) return new BreakStmt();
         if (match(TokenType.CONTINUE)) return new ContinueStmt();
@@ -405,8 +406,8 @@ public class Parser {
     /**
      * Realiza o parsing de um comando de impressão.
      */
-    private PrintStmt printStatement() {
-        consume(TokenType.LEFT_PAREN, "Esperado '(' após 'print'");
+    private PrintStmt printStatement(boolean newline) {
+        consume(TokenType.LEFT_PAREN, "Esperado '(' após 'print' ou 'println'");
         List<ASTNode> args = new ArrayList<>();
         if (!check(TokenType.RIGHT_PAREN)) {
             do {
@@ -415,7 +416,7 @@ public class Parser {
         }
         consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos de print");
         consume(TokenType.SEMICOLON, "Esperado ';' ao final do print");
-        return new PrintStmt(args);
+        return new PrintStmt(args, newline);
     }
 
     /**

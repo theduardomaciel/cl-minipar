@@ -15,7 +15,8 @@ public enum TokenType {
     // Palavras-chave
     VAR,         // Declaração de variável
     FUNC,        // Declaração de função
-    PRINT,       // Saída
+    PRINT,       // Saída (sem quebra de linha)
+    PRINTLN,     // Saída (com quebra de linha)
     INPUT,       // Entrada
     IF,          // Estrutura condicional
     ELSE,        // Alternativa condicional

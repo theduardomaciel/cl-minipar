@@ -9,7 +9,7 @@ func ativacao(number soma) -> number {
 }
 
 func treinar(number input_val, number output_desejado, number peso_inicial, number peso_bias_inicial, number taxa) -> void {
-    print("Entrada:", input_val, "| Saída desejada:", output_desejado);
+    println("Entrada:", input_val, "| Saída desejada:", output_desejado);
 
     number peso = peso_inicial;
     number peso_bias = peso_bias_inicial;
@@ -18,16 +18,16 @@ func treinar(number input_val, number output_desejado, number peso_inicial, numb
     list iteracoes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     for (number i in iteracoes) {
-        print("#### Iteração:", i);
+        println("#### Iteração:", i);
 
         number soma = (input_val * peso) + peso_bias;
         number saida = ativacao(soma);
         number erro = output_desejado - saida;
 
-        print("Peso:", peso);
-        print("Saída:", saida);
-        print("Erro:", erro);
-        print("Peso do bias:", peso_bias);
+        println("Peso:", peso);
+        println("Saída:", saida);
+        println("Erro:", erro);
+        println("Peso do bias:", peso_bias);
 
         if (erro == 0) {
             return;
@@ -37,7 +37,7 @@ func treinar(number input_val, number output_desejado, number peso_inicial, numb
         }
     }
 
-    print("Valor desejado:", output_desejado);
+    println("Valor desejado:", output_desejado);
 }
 
 seq {

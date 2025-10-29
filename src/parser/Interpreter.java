@@ -307,20 +307,22 @@ public class Interpreter {
         for (ASTNode a : p.arguments) vals.add(eval(a));
         
         if (vals.isEmpty()) {
-            System.out.println();
+            if (p.newline) {
+                System.out.println();
+            }
             return null;
         }
         
-        if (vals.size() == 1) {
-            System.out.print(stringify(vals.get(0)));
-        } else {
-            // imprime com espaço entre argumentos
-            for (int i = 0; i < vals.size(); i++) {
-                if (i > 0) System.out.print(" ");
-                System.out.print(stringify(vals.get(i)));
-            }
+        // Imprime todos os argumentos concatenados (sem espaços entre eles)
+        for (Object val : vals) {
+            System.out.print(stringify(val));
         }
-        System.out.println(); // sempre quebra linha no final
+        
+        // Adiciona quebra de linha se for println
+        if (p.newline) {
+            System.out.println();
+        }
+        
         return null;
     }
 

@@ -5,7 +5,7 @@ func xor(bool a, bool b) -> bool {
 }
 
 seq {
-    print("=== Tabela Verdade XOR ===");
+    println("=== Tabela Verdade XOR ===");
 
     list entradas = [[false, false], [false, true], [true, false], [true, true]];
 
@@ -13,6 +13,6 @@ seq {
         bool a = entrada[0];
         bool b = entrada[1];
         bool r = xor(a, b);
-        print("Entrada:", a, ",", b, "| Saída:", r);
+        println("Entrada:", a, ",", b, "| Saída:", r);
     }
 }
