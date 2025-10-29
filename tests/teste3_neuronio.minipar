@@ -1,0 +1,45 @@
+# Programa de Teste 3: Neurônio Simples (Perceptron)
+
+func ativacao(number soma) -> number {
+    if (soma >= 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+func treinar(number input_val, number output_desejado, number peso_inicial, number peso_bias_inicial, number taxa) -> void {
+    print("Entrada:", input_val, "| Saída desejada:", output_desejado);
+
+    number peso = peso_inicial;
+    number peso_bias = peso_bias_inicial;
+
+    # Usamos uma lista fixa para iterar (for-in)
+    list iteracoes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+    for (number i in iteracoes) {
+        print("#### Iteração:", i);
+
+        number soma = (input_val * peso) + peso_bias;
+        number saida = ativacao(soma);
+        number erro = output_desejado - saida;
+
+        print("Peso:", peso);
+        print("Saída:", saida);
+        print("Erro:", erro);
+        print("Peso do bias:", peso_bias);
+
+        if (erro == 0) {
+            return;
+        } else {
+            peso = peso + (taxa * erro * input_val);
+            peso_bias = peso_bias + (taxa * erro);
+        }
+    }
+
+    print("Valor desejado:", output_desejado);
+}
+
+seq {
+    treinar(1, 0, 0.5, 0.5, 0.01);
+}

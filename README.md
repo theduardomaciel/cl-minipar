@@ -12,10 +12,6 @@ Um **interpretador orientado a objetos** para a linguagem educacional **MiniPar 
 
 O tema escolhido dentre as opções propostas foi o **Tema 2 – MiniPar Orientado a Objetos**.
 
-> [!NOTE]
-> Esta atual entrega corresponde à **Atividade 2 – Front-End**, abrangendo a implementação e demonstração do **Analisador Léxico** e do **Analisador Sintático** do Tema 2.  
-> As próximas atividades abordarão a **interpretação orientada a objetos completa** da linguagem MiniPar 2025.1.
-
 ---
 
 ## ⭐ Features
@@ -64,9 +60,27 @@ x = 3 + 5;
 
 ### Execução
 
+> Observação: os exemplos abaixo usam o shell Bash no Windows (Git Bash). Se preferir PowerShell/CMD, adapte as barras e aspas conforme necessário.
+
+Compile as fontes (gera as classes em `out/`):
+
 ```bash
-javac src/*.java
-java -cp src Main
+mkdir -p out
+javac -encoding UTF-8 -d out src/Main.java src/lexer/*.java src/parser/*.java
+```
+
+Execute em modo interativo (REPL):
+
+```bash
+java -cp out Main
+```
+
+Ou execute passando um arquivo `.minipar` (exemplos no diretório `tests/` e `tests_experimental/`):
+
+```bash
+java -cp out Main tests/teste1_calculadora.minipar
+# ou
+java -cp out Main tests_experimental/teste5_recomendacao.minipar
 ```
 
 ### Saída esperada
@@ -102,13 +116,15 @@ cd cl-minipar
 ### 2. Compilar o projeto
 
 ```bash
-javac src/*.java
+mkdir -p out
+javac -encoding UTF-8 -d out src/Main.java src/lexer/*.java src/parser/*.java
 ```
 
 ### 3. Executar com arquivo de teste
 
 ```bash
-java -cp src Main test.minipar
+java -cp out Main tests/teste1_calculadora.minipar
+# ou qualquer outro arquivo .minipar
 ```
 
 > [!TIP]

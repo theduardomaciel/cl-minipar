@@ -1,0 +1,81 @@
+# Programa de Teste 3: Neurônio Simples
+# Implementação de um neurônio que aprende usando perceptron
+
+class Neuronio {
+    number input_val;
+    number output_desejado;
+    number peso;
+    number peso_bias;
+    number taxa_aprendizado;
+    
+    # Construtor
+    Neuronio(number inputVal, number output_esperado, number peso_inicial, number bias_inicial, number taxa) {
+        this.input_val = inputVal;
+        this.output_desejado = output_esperado;
+        this.peso = peso_inicial;
+        this.peso_bias = bias_inicial;
+        this.taxa_aprendizado = taxa;
+    }
+    
+    number ativacao(number soma) {
+        if (soma >= 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    void treinar() {
+        print("Entrada: ");
+        print(this.input_val);
+        print(" | Saída desejada: ");
+        print(this.output_desejado);
+        
+        number iteracao = 1;
+        number max_iteracoes = 100;
+        bool aprendeu = false;
+        
+        while (iteracao <= max_iteracoes && !aprendeu) {
+            print("#### Iteração: ");
+            print(iteracao);
+            
+            # Calcular saída
+            number soma = (this.input_val * this.peso) + this.peso_bias;
+            number saida = this.ativacao(soma);
+            
+            print("Peso: ");
+            print(this.peso);
+            print("Saída: ");
+            print(saida);
+            
+            # Calcular erro
+            number erro = this.output_desejado - saida;
+            print("Erro: ");
+            print(erro);
+            
+            # Verificar se aprendeu
+            if (erro == 0) {
+                aprendeu = true;
+                print("Parabéns! O neurônio aprendeu.");
+            } else {
+                # Ajustar pesos
+                this.peso = this.peso + (this.taxa_aprendizado * erro * this.input_val);
+                this.peso_bias = this.peso_bias + (this.taxa_aprendizado * erro);
+            }
+            
+            print("Peso do bias: ");
+            print(this.peso_bias);
+            
+            iteracao = iteracao + 1;
+        }
+        
+        print("Valor desejado: ");
+        print(this.output_desejado);
+    }
+}
+
+# Programa principal
+seq {
+    Neuronio neuronio = new Neuronio(1, 0, 0.5, 0.5, 0.01);
+    neuronio.treinar();
+}

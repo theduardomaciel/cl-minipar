@@ -662,6 +662,26 @@ class IndexExpr extends ASTNode {
 }
 
 /**
+ * Atribuição em índice: alvo[índice] = valor
+ */
+class IndexAssign extends ASTNode {
+    public ASTNode target;
+    public ASTNode index;
+    public ASTNode value;
+
+    public IndexAssign(ASTNode target, ASTNode index, ASTNode value) {
+        this.target = target;
+        this.index = index;
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "IndexAssign(" + target + "[" + index + "] = " + value + ")";
+    }
+}
+
+/**
  * Comando de impressão: print(arg1, arg2, ...)
  */
 class PrintStmt extends ASTNode {
@@ -728,3 +748,51 @@ class ReceiveStmt extends ASTNode {
         return "Receive(channel=" + channel + ", args=" + arguments + ")";
     }
 }
+
+    /**
+     * Acesso a propriedade: alvo.propriedade
+     */
+    class PropertyAccess extends ASTNode {
+        public final ASTNode object;
+        public final String propertyName;
+
+        public PropertyAccess(ASTNode object, String propertyName) {
+            this.object = object;
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(get %s.%s)", object, propertyName);
+        }
+    }
+
+    /**
+     * Atribuição a propriedade: alvo.propriedade = valor
+     */
+    class PropertyAssign extends ASTNode {
+        public final ASTNode object;
+        public final String propertyName;
+        public final ASTNode value;
+
+        public PropertyAssign(ASTNode object, String propertyName, ASTNode value) {
+            this.object = object;
+            this.propertyName = propertyName;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(set %s.%s %s)", object, propertyName, value);
+        }
+    }
+
+    /**
+     * Referência ao objeto atual (this)
+     */
+    class ThisExpr extends ASTNode {
+        @Override
+        public String toString() {
+            return "this";
+        }
+    }

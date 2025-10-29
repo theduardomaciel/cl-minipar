@@ -120,13 +120,15 @@ public class Parser {
         List<MethodDecl> methods = new ArrayList<>();
 
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            // Verifica se é um método ou atributo
-            if (isMethodStart()) {
-                // É um método: tipo id (...)
-                methods.add(methodDeclaration());
-            } else if (isVarDeclStart()) {
-                // É um atributo (declaração de variável)
+            // Verifica primeiro atributos, depois construtor e métodos
+            if (isVarDeclStart()) {
+                // Atributo (declaração de variável)
                 attributes.add(varDeclaration());
+            } else if (isConstructorStart(className)) {
+                methods.add(constructorDeclaration(className));
+            } else if (isMethodStart()) {
+                // Método: <tipo> <id>(...)
+                methods.add(methodDeclaration());
             } else {
                 throw error(peek(), "Esperado declaração de método ou atributo");
             }
@@ -135,6 +137,35 @@ public class Parser {
         consume(TokenType.RIGHT_BRACE, "Esperado '}' após corpo da classe");
 
         return new ClassDecl(className, superClass, attributes, methods);
+    }
+
+    /**
+     * Verifica se a posição atual inicia um construtor da classe.
+     * Forma aceita: <NomeDaClasse> ( ... ) { ... }
+     */
+    private boolean isConstructorStart(String className) {
+        if (isAtEnd()) return false;
+        Token t0 = peek();
+        if (t0.type() != TokenType.ID) return false;
+        if (!t0.lexeme().equals(className)) return false;
+        if (current + 1 >= tokens.size()) return false;
+        return tokens.get(current + 1).type() == TokenType.LEFT_PAREN;
+    }
+
+    /**
+     * Realiza o parsing de um construtor: <NomeClasse>(params) { corpo }
+     * Representado como MethodDecl com returnType = <NomeClasse> e name = <NomeClasse>
+     */
+    private MethodDecl constructorDeclaration(String className) {
+        // Consome o nome da classe já verificado
+        advance(); // nome da classe (como "nome do método")
+        consume(TokenType.LEFT_PAREN, "Esperado '(' após nome do construtor");
+        List<Parameter> params = parameters();
+        consume(TokenType.RIGHT_PAREN, "Esperado ')' após parâmetros do construtor");
+        consume(TokenType.LEFT_BRACE, "Esperado '{' antes do corpo do construtor");
+        List<ASTNode> body = block();
+        consume(TokenType.RIGHT_BRACE, "Esperado '}' após corpo do construtor");
+        return new MethodDecl(className, className, params, body);
     }
 
     /**
@@ -186,6 +217,8 @@ public class Parser {
 
     /**
      * Realiza o parsing da lista de parâmetros.
+     * Agora no formato: <tipo> <nome>, separados por vírgula.
+     * Ex.: (number x, string nome, MinhaClasse obj)
      *
      * @return Lista de parâmetros.
      */
@@ -194,15 +227,23 @@ public class Parser {
 
         if (!check(TokenType.RIGHT_PAREN)) {
             do {
-                Token paramName = consume(TokenType.ID, "Esperado nome do parâmetro");
-                consume(TokenType.COLON, "Esperado ':' após nome do parâmetro");
-                Token paramType = advance();
-
-                params.add(new Parameter(paramName.lexeme(), paramType.lexeme()));
+                Token typeToken = consumeTypeTokenOrId("Esperado tipo do parâmetro");
+                Token nameToken = consume(TokenType.ID, "Esperado nome do parâmetro");
+                params.add(new Parameter(nameToken.lexeme(), typeToken.lexeme()));
             } while (match(TokenType.COMMA));
         }
 
         return params;
+    }
+
+    /** Consome um token de tipo embutido ou um identificador (tipo customizado). */
+    private Token consumeTypeTokenOrId(String message) {
+        if (isAtEnd()) throw error(peek(), message);
+        Token t = peek();
+        if (isTypeTokenOrId(t.type())) {
+            return advance();
+        }
+        throw error(t, message);
     }
 
     /**
@@ -342,11 +383,12 @@ public class Parser {
 
     /**
      * Realiza o parsing de uma instrução for-in.
+     * Forma: for (tipo nome in expressao) { ... }
      */
     private ForStmt forStatement() {
         consume(TokenType.LEFT_PAREN, "Esperado '(' após 'for'");
         // Forma: <tipo> <id> in expr
-        Token typeToken = advance();
+        Token typeToken = consumeTypeTokenOrId("Esperado tipo no for");
         Token nameToken = consume(TokenType.ID, "Esperado nome da variável do for");
         VarDecl variable = new VarDecl(nameToken.lexeme(), typeToken.lexeme(), null);
         consume(TokenType.IN, "Esperado 'in' no for");
@@ -376,12 +418,14 @@ public class Parser {
 
     /**
      * Realiza o parsing de uma instrução de retorno.
+     * Aceita 'return;' (sem valor) para funções void ou 'return expr;'
      *
      * @return ReturnStmt representando o retorno.
      */
     private ReturnStmt returnStatement() {
         ASTNode value = null;
-        if (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+        // Só tenta parsear expressão se o próximo token não for ';'
+        if (!check(TokenType.SEMICOLON)) {
             value = expression();
         }
         consume(TokenType.SEMICOLON, "Esperado ';' ao final da instrução de retorno");
@@ -464,6 +508,16 @@ public class Parser {
             if (expr instanceof Identifier) {
                 String name = ((Identifier) expr).name;
                 return new Assignment(name, value);
+            }
+
+            if (expr instanceof PropertyAccess) {
+                PropertyAccess pa = (PropertyAccess) expr;
+                return new PropertyAssign(pa.object, pa.propertyName, value);
+            }
+
+            if (expr instanceof IndexExpr) {
+                IndexExpr ie = (IndexExpr) expr;
+                return new IndexAssign(ie.target, ie.index, value);
             }
 
             throw error(previous(), "Alvo de atribuição inválido");
@@ -618,8 +672,8 @@ public class Parser {
                     consume(TokenType.RIGHT_PAREN, "Esperado ')' após argumentos");
                     expr = new MethodCall(expr, name.lexeme(), arguments);
                 } else {
-                    // acesso a propriedade como identificador simbólico
-                    expr = new Identifier(name.lexeme());
+                    // acesso a propriedade
+                    expr = new PropertyAccess(expr, name.lexeme());
                 }
             } else if (match(TokenType.LEFT_BRACKET)) {
                 ASTNode indexExpr = expression();
@@ -680,6 +734,10 @@ public class Parser {
         }
         if (match(TokenType.FALSE)) {
             return new Literal(false);
+        }
+
+        if (match(TokenType.THIS)) {
+            return new ThisExpr();
         }
 
         if (match(TokenType.NUMBER)) {
@@ -800,7 +858,7 @@ public class Parser {
 
     /**
      * Verifica se o token atual inicia uma declaração de método.
-     * Um método começa com um tipo de retorno seguido de um identificador.
+     * Um método começa com um tipo de retorno seguido de um identificador e '('.
      *
      * @return true se é início de método, false caso contrário.
      */
@@ -810,15 +868,20 @@ public class Parser {
         TokenType currentType = peek().type();
 
         // Verifica se é um tipo de retorno válido (void, string, number, bool ou ID customizado)
-        boolean isReturnType = currentType == TokenType.TYPE_VOID ||
-                currentType == TokenType.TYPE_STRING ||
-                currentType == TokenType.TYPE_NUMBER ||
-                currentType == TokenType.TYPE_BOOL ||
-                currentType == TokenType.ID;
+    boolean isReturnType = currentType == TokenType.TYPE_VOID ||
+        currentType == TokenType.TYPE_STRING ||
+        currentType == TokenType.TYPE_NUMBER ||
+        currentType == TokenType.TYPE_BOOL ||
+        currentType == TokenType.TYPE_LIST ||
+        currentType == TokenType.TYPE_DICT ||
+        currentType == TokenType.ID;
 
-        // Verifica se o próximo token é um ID (nome do método)
+        // Verifica se o próximo token é um ID (nome do método) e o seguinte é '('
         if (isReturnType && current + 1 < tokens.size()) {
-            return tokens.get(current + 1).type() == TokenType.ID;
+            if (tokens.get(current + 1).type() != TokenType.ID) return false;
+            if (current + 2 < tokens.size()) {
+                return tokens.get(current + 2).type() == TokenType.LEFT_PAREN;
+            }
         }
 
         return false;
