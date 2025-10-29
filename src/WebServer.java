@@ -59,6 +59,7 @@ public class WebServer {
         server.createContext("/session/start", new StartSessionHandler());
         server.createContext("/session/status", new SessionStatusHandler());
         server.createContext("/session/input", new ProvideInputHandler());
+        server.createContext("/session/tcpconfig", new ProvideTCPConfigHandler());
         
         server.setExecutor(null); // usa executor padrão
         server.start();
@@ -339,9 +340,11 @@ public class WebServer {
             
             // Construir resposta com status da sessão
             String jsonResponse = String.format(
-                "{\"running\": %s, \"waitingForInput\": %s, \"output\": %s, \"error\": %s}",
+                "{\"running\": %s, \"waitingForInput\": %s, \"waitingForTCPConfig\": %s, \"tcpConfigInfo\": %s, \"output\": %s, \"error\": %s}",
                 session.isRunning(),
                 session.isWaitingForInput(),
+                session.isWaitingForTCPConfig(),
+                escapeJson(session.getCurrentTCPConfigInfo()),
                 escapeJson(session.getOutput()),
                 escapeJson(session.getError())
             );
@@ -459,6 +462,91 @@ public class WebServer {
             java.util.regex.Matcher m = p.matcher(json);
             if (m.find()) {
                 return m.group(1);
+            }
+            return null;
+        }
+        
+        private void sendError(HttpExchange exchange, String message) throws IOException {
+            String jsonResponse = String.format("{\"error\": \"%s\"}", message);
+            byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(400, response.length);
+            
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
+        }
+    }
+    
+    /**
+     * Handler para fornecer configuração de canal TCP para uma sessão em execução
+     */
+    static class ProvideTCPConfigHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            
+            // Ler JSON do corpo da requisição
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
+            BufferedReader br = new BufferedReader(isr);
+            String body = br.lines().collect(Collectors.joining("\n"));
+            
+            // Parse simples do JSON
+            String sessionId = extractJsonField(body, "sessionId");
+            String isServerStr = extractJsonField(body, "isServer");
+            String host = extractJsonField(body, "host");
+            String portStr = extractJsonField(body, "port");
+            
+            if (sessionId == null || isServerStr == null || portStr == null) {
+                sendError(exchange, "sessionId, isServer e port são obrigatórios");
+                return;
+            }
+            
+            ExecutionSession session = sessions.get(sessionId);
+            if (session == null) {
+                sendError(exchange, "Sessão não encontrada");
+                return;
+            }
+            
+            try {
+                boolean isServer = Boolean.parseBoolean(isServerStr);
+                int port = Integer.parseInt(portStr);
+                
+                // Host é opcional (apenas para cliente)
+                if (host == null || host.isEmpty()) {
+                    host = "localhost";
+                }
+                
+                // Fornecer configuração TCP para a sessão
+                session.provideTCPConfig(isServer, host, port);
+                
+                // Retornar sucesso
+                String jsonResponse = "{\"success\": true}";
+                byte[] response = jsonResponse.getBytes(StandardCharsets.UTF_8);
+                
+                exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.sendResponseHeaders(200, response.length);
+                
+                OutputStream os = exchange.getResponseBody();
+                os.write(response);
+                os.close();
+            } catch (NumberFormatException e) {
+                sendError(exchange, "Porta inválida");
+            }
+        }
+        
+        private String extractJsonField(String json, String field) {
+            String pattern = "\"" + field + "\"\\s*:\\s*\"?([^,\"\\}]+)\"?";
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
+            java.util.regex.Matcher m = p.matcher(json);
+            if (m.find()) {
+                return m.group(1).trim();
             }
             return null;
         }

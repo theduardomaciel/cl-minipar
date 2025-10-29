@@ -3,6 +3,7 @@ let editor;
 const API_URL = 'http://localhost:8080';
 let inputQueue = [];
 let waitingForInput = false;
+let waitingForTCPConfig = false;
 let currentSessionId = null;
 let pollingInterval = null;
 
@@ -247,7 +248,7 @@ function showInputField(prompt = '') {
 function hideInputField() {
     const inputContainer = document.getElementById('inputContainer');
     const userInput = document.getElementById('userInput');
-    
+
     inputContainer.classList.add('hidden');
     userInput.value = ''; // Limpa o campo ao esconder
 }
@@ -362,6 +363,12 @@ function startPolling() {
             if (status.waitingForInput && !waitingForInput) {
                 showInputField();
             }
+            
+            // Verificar se está aguardando configuração TCP
+            if (status.waitingForTCPConfig && !waitingForTCPConfig) {
+                const configInfo = parseTCPConfigInfo(status.tcpConfigInfo);
+                showTCPConfigDialog(configInfo);
+            }
 
             // Verificar se terminou
             if (!status.running) {
@@ -434,6 +441,148 @@ document.addEventListener('keydown', function (e) {
 editor.on('change', function () {
     // Pode adicionar aqui validação em tempo real ou outras funcionalidades
 });
+
+/**
+ * Parseia a string de informações de configuração TCP
+ */
+function parseTCPConfigInfo(infoStr) {
+    if (!infoStr) return null;
+    
+    const parts = {};
+    infoStr.split(',').forEach(part => {
+        const [key, value] = part.split('=');
+        parts[key] = value;
+    });
+    
+    return parts;
+}
+
+/**
+ * Mostra dialog para configuração de canal TCP
+ */
+function showTCPConfigDialog(configInfo) {
+    if (!configInfo) return;
+    
+    waitingForTCPConfig = true;
+    
+    const message = `\n🔌 Configuração do Canal TCP '${configInfo.canal}'\n` +
+                   `   Componentes: ${configInfo.comp1} ⟷ ${configInfo.comp2}\n\n` +
+                   `   Este processo será Servidor ou Cliente?\n`;
+    
+    appendToOutput(message, 'output-info');
+    
+    // Criar dialog de configuração
+    const dialog = document.createElement('div');
+    dialog.className = 'tcp-config-dialog';
+    dialog.innerHTML = `
+        <div class="tcp-config-content">
+            <h3>Configuração de Canal TCP</h3>
+            <p><strong>Canal:</strong> ${configInfo.canal}</p>
+            <p><strong>Componentes:</strong> ${configInfo.comp1} ⟷ ${configInfo.comp2}</p>
+            
+            <div class="form-group">
+                <label>
+                    <input type="radio" name="tcpRole" value="server" checked>
+                    Servidor (espera conexões)
+                </label>
+                <label>
+                    <input type="radio" name="tcpRole" value="client">
+                    Cliente (conecta ao servidor)
+                </label>
+            </div>
+            
+            <div id="serverConfig" class="config-section">
+                <div class="form-group">
+                    <label for="tcpPort">Porta:</label>
+                    <input type="number" id="tcpPort" value="8081" min="1024" max="65535">
+                </div>
+            </div>
+            
+            <div id="clientConfig" class="config-section" style="display: none;">
+                <div class="form-group">
+                    <label for="tcpHost">Host do Servidor:</label>
+                    <input type="text" id="tcpHost" value="localhost" placeholder="localhost ou IP">
+                </div>
+                <div class="form-group">
+                    <label for="tcpPortClient">Porta:</label>
+                    <input type="number" id="tcpPortClient" value="8081" min="1024" max="65535">
+                </div>
+            </div>
+            
+            <div class="dialog-buttons">
+                <button id="confirmTCPConfig" class="btn btn-primary">Confirmar</button>
+                <button id="cancelTCPConfig" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    // Event listeners para alternar entre servidor/cliente
+    const roleRadios = dialog.querySelectorAll('input[name="tcpRole"]');
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const serverConfig = dialog.querySelector('#serverConfig');
+            const clientConfig = dialog.querySelector('#clientConfig');
+            
+            if (this.value === 'server') {
+                serverConfig.style.display = 'block';
+                clientConfig.style.display = 'none';
+            } else {
+                serverConfig.style.display = 'none';
+                clientConfig.style.display = 'block';
+            }
+        });
+    });
+    
+    // Confirmar configuração
+    dialog.querySelector('#confirmTCPConfig').addEventListener('click', async function() {
+        const role = dialog.querySelector('input[name="tcpRole"]:checked').value;
+        const isServer = role === 'server';
+        
+        let host = 'localhost';
+        let port = 8081;
+        
+        if (isServer) {
+            port = parseInt(dialog.querySelector('#tcpPort').value);
+        } else {
+            host = dialog.querySelector('#tcpHost').value;
+            port = parseInt(dialog.querySelector('#tcpPortClient').value);
+        }
+        
+        // Enviar configuração para o servidor
+        try {
+            await fetch(`${API_URL}/session/tcpconfig`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({
+                    sessionId: currentSessionId,
+                    isServer: isServer,
+                    host: host,
+                    port: port
+                })
+            });
+            
+            const configType = isServer ? 'Servidor' : 'Cliente';
+            appendToOutput(`✓ Configurado como ${configType} (${host}:${port})\n`, 'output-success');
+        } catch (error) {
+            console.error('Erro ao enviar configuração TCP:', error);
+            appendToOutput('✗ Erro ao enviar configuração TCP: ' + error.message, 'output-error');
+        }
+        
+        dialog.remove();
+        waitingForTCPConfig = false;
+    });
+    
+    // Cancelar configuração
+    dialog.querySelector('#cancelTCPConfig').addEventListener('click', function() {
+        dialog.remove();
+        waitingForTCPConfig = false;
+        stopExecution();
+    });
+}
 
 console.log('🚀 MiniPar Web Interface carregada com sucesso!');
 console.log('Atalhos disponíveis:');
