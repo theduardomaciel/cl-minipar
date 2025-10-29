@@ -21,7 +21,8 @@ import java.util.concurrent.BlockingQueue;
  */
 public class Interpreter {
     private final Environment globals = new Environment();
-    private Environment env = globals;
+    // Usar ThreadLocal para que cada thread tenha seu próprio ambiente
+    private final ThreadLocal<Environment> threadEnv = ThreadLocal.withInitial(() -> globals);
     private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     // Built-ins de função: nome -> invocador
@@ -38,6 +39,15 @@ public class Interpreter {
             double b = toNumber(args.get(1));
             return Math.pow(a, b);
         });
+    }
+    
+    // Propriedades para acesso ao environment da thread atual
+    private Environment getEnv() {
+        return threadEnv.get();
+    }
+    
+    private void setEnv(Environment e) {
+        threadEnv.set(e);
     }
 
     // ===== API =====
@@ -89,13 +99,13 @@ public class Interpreter {
 
     private Object execVarDecl(VarDecl v) {
         Object init = (v.initializer != null) ? eval(v.initializer) : null;
-        env.define(v.name, init);
+        getEnv().define(v.name, init);
         return null;
     }
 
     private Object execFuncDecl(FuncDecl f) {
-        MiniFunction fn = new MiniFunction(f.name, f.parameters, f.body, env);
-        env.define(f.name, fn);
+        MiniFunction fn = new MiniFunction(f.name, f.parameters, f.body, getEnv());
+        getEnv().define(f.name, fn);
         return null;
     }
 
@@ -104,7 +114,7 @@ public class Interpreter {
         Map<String, MethodDecl> methods = new HashMap<>();
         for (MethodDecl m : c.methods) methods.put(m.name, m);
         MiniClass klass = new MiniClass(c.name, c.superClass, c.attributes, methods);
-        env.define(c.name, klass);
+        getEnv().define(c.name, klass);
         return null;
     }
 
@@ -143,14 +153,14 @@ public class Interpreter {
                     tcpChannel.start(host);
                 }
                 
-                env.define(canalName, tcpChannel);
+                getEnv().define(canalName, tcpChannel);
             } catch (Exception e) {
                 throw new RuntimeException("Erro ao configurar canal TCP: " + e.getMessage());
             }
         } else if (c.nomes.size() >= 1) {
             // Canal local (mesmo processo) usando BlockingQueue
             String first = c.nomes.get(0);
-            env.define(first, new Channel(first));
+            getEnv().define(first, new Channel(first));
         }
         return null;
     }
@@ -167,13 +177,22 @@ public class Interpreter {
         
         List<Thread> threads = new ArrayList<>();
         List<Throwable> errors = new ArrayList<>();
-        Environment sharedEnv = new Environment(env);
+        Environment parentEnv = getEnv();
         
         for (List<ASTNode> group : groups) {
             Thread t = new Thread(() -> {
-                Environment prev = this.env;
                 try {
-                    this.env = sharedEnv;
+                    // Cada thread inicializa com uma cópia do ambiente global
+                    setEnv(new Environment(globals));
+                    // Copiar as classes e funções do ambiente pai para esta thread
+                    synchronized (globals) {
+                        parentEnv.getValues().forEach((k, v) -> {
+                            if (v instanceof MiniClass || v instanceof MiniFunction) {
+                                getEnv().define(k, v);
+                            }
+                        });
+                    }
+                    
                     for (ASTNode s : group) {
                         exec(s);
                     }
@@ -181,8 +200,6 @@ public class Interpreter {
                     synchronized (errors) {
                         errors.add(e);
                     }
-                } finally {
-                    this.env = prev;
                 }
             });
             threads.add(t);
@@ -266,10 +283,10 @@ public class Interpreter {
         Object iterable = eval(f.iterable);
         if (iterable instanceof List<?> list) {
             for (Object item : list) {
-                Environment loopEnv = new Environment(env);
+                Environment loopEnv = new Environment(getEnv());
                 loopEnv.define(f.variable.name, item);
-                Environment prev = env;
-                env = loopEnv;
+                Environment prev = getEnv();
+                setEnv(loopEnv);
                 try {
                     execSeq(f.body);
                 } catch (BreakSignal b) {
@@ -277,7 +294,7 @@ public class Interpreter {
                 } catch (ContinueSignal c) {
                     // ignora
                 } finally {
-                    env = prev;
+                    setEnv(prev);
                 }
             }
             return null;
@@ -309,7 +326,7 @@ public class Interpreter {
 
     private Object execAssignment(Assignment a) {
         Object value = eval(a.value);
-        env.assign(a.varName, value);
+        getEnv().assign(a.varName, value);
         return value;
     }
 
@@ -346,7 +363,7 @@ public class Interpreter {
     private Object eval(ASTNode node) {
         if (node == null) return null;
         if (node instanceof Literal l) return l.value;
-        if (node instanceof Identifier id) return env.get(id.name);
+        if (node instanceof Identifier id) return getEnv().get(id.name);
         if (node instanceof UnaryExpr u) return evalUnary(u);
         if (node instanceof BinaryExpr b) return evalBinary(b);
         if (node instanceof ListLiteral ll) return evalListLiteral(ll);
@@ -357,7 +374,7 @@ public class Interpreter {
         if (node instanceof NewInstance ni) return evalNewInstance(ni);
         if (node instanceof MethodCall mc) return evalMethodCall(mc);
         if (node instanceof FunctionCall fc) return evalFunctionCall(fc);
-        if (node instanceof ThisExpr) return env.get("this");
+        if (node instanceof ThisExpr) return getEnv().get("this");
         if (node instanceof SendStmt s) { execSend(s); return null; }
         if (node instanceof ReceiveStmt r) { execReceive(r); return null; }
         if (node instanceof Program p) { execProgram(p); return null; }
@@ -471,7 +488,7 @@ public class Interpreter {
     }
 
     private Object evalNewInstance(NewInstance ni) {
-        Object found = env.get(ni.className);
+        Object found = getEnv().get(ni.className);
         if (!(found instanceof MiniClass klass)) {
             throw new RuntimeException("Classe não definida: " + ni.className);
         }
@@ -498,7 +515,7 @@ public class Interpreter {
             return builtins.get(fc.functionName).call(args);
         }
         // função definida pelo usuário
-        Object callee = env.get(fc.functionName);
+        Object callee = getEnv().get(fc.functionName);
         if (callee instanceof MiniFunction fn) {
             return fn.call(args);
         }
@@ -556,7 +573,7 @@ public class Interpreter {
 
     private void assignToTarget(ASTNode target, Object value) {
         if (target instanceof Identifier id) {
-            env.assign(id.name, value);
+            getEnv().assign(id.name, value);
             return;
         }
         if (target instanceof PropertyAccess pa) {
@@ -704,14 +721,14 @@ public class Interpreter {
                 Object pval = i < args.size() ? args.get(i) : null;
                 local.define(pname, pval);
             }
-            Environment prev = env;
-            env = local;
+            Environment prev = getEnv();
+            setEnv(local);
             try {
                 for (ASTNode s : body) exec(s);
             } catch (ReturnSignal rs) {
                 return rs.value;
             } finally {
-                env = prev;
+                setEnv(prev);
             }
             return null; // void
         }
@@ -734,12 +751,12 @@ public class Interpreter {
                 Object init = null;
                 if (v.initializer != null) {
                     // criar ambiente com this
-                    Environment prev = env;
+                    Environment prev = getEnv();
                     Environment local = new Environment(prev);
                     local.define("this", inst);
-                    env = local;
+                    setEnv(local);
                     try { init = eval(v.initializer); }
-                    finally { env = prev; }
+                    finally { setEnv(prev); }
                 }
                 inst.fields.put(v.name, init);
             }
@@ -776,21 +793,21 @@ public class Interpreter {
         Object call(String methodName, List<Object> args) {
             MethodDecl m = klass.methods.get(methodName);
             if (m == null) throw new RuntimeException("Método não encontrado: " + methodName);
-            Environment local = new Environment(env);
+            Environment local = new Environment(getEnv());
             local.define("this", this);
             for (int i = 0; i < m.parameters.size(); i++) {
                 String pname = m.parameters.get(i).name;
                 Object pval = i < args.size() ? args.get(i) : null;
                 local.define(pname, pval);
             }
-            Environment prev = env;
-            env = local;
+            Environment prev = getEnv();
+            setEnv(local);
             try {
                 for (ASTNode s : m.body) exec(s);
             } catch (ReturnSignal rs) {
                 return rs.value;
             } finally {
-                env = prev;
+                setEnv(prev);
             }
             return null;
         }

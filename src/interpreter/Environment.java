@@ -48,6 +48,11 @@ public class Environment {
         return enclosing;
     }
 
+    /** Retorna o mapa de valores (para uso interno). */
+    public Map<String, Object> getValues() {
+        return values;
+    }
+
     /** Cria uma cópia rasa do ambiente (somente valores no escopo atual). */
     public Environment shallowCopy() {
         Environment e = new Environment(enclosing);
