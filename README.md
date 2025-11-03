@@ -22,7 +22,6 @@ O tema escolhido dentre as opções propostas foi o **Tema 2 – MiniPar Orienta
 - ⚠️ **Tratamento de erros sintáticos** com exceções customizadas (`SyntaxError`)
 - 📄 **Interface textual simples** para entrada e saída no console
 - 🌐 **Interface Web** com syntax highlighting e execução em tempo real
-- ✅ Estrutura modular e extensível para fases futuras (semântica e execução OO)
 
 ---
 
@@ -32,8 +31,9 @@ A aplicação segue a estrutura clássica de um *front-end de compilador*, organ
 
 ```
 src/
-├── Main.java              # Interface CLI
-├── server.WebServer.java         # Servidor HTTP para interface web
+├── Main.java                  # Interface CLI
+├── server/
+│   └── WebServer.java         # Servidor HTTP para interface web
 ├── lexer/  
 │   ├── Lexer.java
 │   ├── Token.java
@@ -42,9 +42,9 @@ src/
 │   ├── ASTNode.java
 │   ├── Parser.java
 │   ├── Program.java
-│   └── Interpreter.java
 └── interpreter/
-    └── Environment.java
+    ├── Environment.java
+    └── Interpreter.java
 
 web/                       # Interface Web
 ├── index.html            # Interface principal
@@ -59,6 +59,7 @@ web/                       # Interface Web
 - **Lexer:** realiza a varredura do código-fonte e converte-o em uma lista de *tokens*.
 - **Parser:** analisa a sequência de tokens e constrói a árvore sintática abstrata (AST).
 - **AST (Abstract Syntax Tree):** representação hierárquica do código analisado.
+- **Interpreter:** percorre a AST para executar o código.
 - **Main:** ponto de entrada — integra Lexer, Parser e exibe resultados.
 
 ---
