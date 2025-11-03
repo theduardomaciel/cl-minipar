@@ -1,4 +1,4 @@
-package parser;
+package interpreter;
 
 import io.InputCallback;
 import io.TCPChannel;
@@ -14,7 +14,8 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import interpreter.Environment;
+import parser.Program;
+import parser.ast.*;
 
 /**
  * Interpretador da AST do MiniPar OOP.

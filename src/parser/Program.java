@@ -1,5 +1,7 @@
 package parser;
 
+import parser.ast.ASTNode;
+
 import java.util.List;
 
 /**

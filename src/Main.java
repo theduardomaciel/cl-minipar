@@ -2,15 +2,16 @@ import lexer.Lexer;
 import lexer.Token;
 import lexer.TokenType;
 import parser.Parser;
-import parser.ASTNode;
-import parser.Interpreter;
 import parser.Program;
+import parser.ast.ASTNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
+
+import interpreter.Interpreter;
 
 /**
  * Classe principal do interpretador MiniPar.

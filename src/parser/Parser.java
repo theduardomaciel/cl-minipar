@@ -5,6 +5,7 @@ import lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
+import parser.ast.*;
 
 /**
  * Parser Descendente Recursivo para construção de Árvore Sintática Abstrata
@@ -1080,19 +1081,5 @@ class ParseException extends RuntimeException {
      */
     public ParseException(String message) {
         super(message);
-    }
-}
-
-// Classe para representar declaração de canal
-class CanalDecl extends ASTNode {
-    public final List<String> nomes;
-
-    public CanalDecl(List<String> nomes) {
-        this.nomes = nomes;
-    }
-
-    @Override
-    public String toString() {
-        return "";
     }
 }

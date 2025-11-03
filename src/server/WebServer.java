@@ -4,11 +4,12 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import interpreter.ExecutionSession;
+import interpreter.Interpreter;
 import lexer.Lexer;
 import lexer.Token;
-import parser.Interpreter;
 import parser.Parser;
 import parser.Program;
+import parser.ast.ASTNode;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -133,7 +134,7 @@ public class WebServer {
             }
         }
 
-        private String astToJson(parser.ASTNode node) {
+        private String astToJson(ASTNode node) {
             if (node == null)
                 return "null";
             StringBuilder sb = new StringBuilder();
@@ -153,18 +154,18 @@ public class WebServer {
                     Object v = f.get(node);
                     if (v == null)
                         continue;
-                    if (v instanceof parser.ASTNode) {
+                    if (v instanceof ASTNode) {
                         if (!first)
                             sb.append(',');
-                        sb.append(astToJson((parser.ASTNode) v));
+                        sb.append(astToJson((ASTNode) v));
                         first = false;
                     } else if (v instanceof java.util.List<?>) {
                         java.util.List<?> list = (java.util.List<?>) v;
                         for (Object item : list) {
-                            if (item instanceof parser.ASTNode) {
+                            if (item instanceof ASTNode) {
                                 if (!first)
                                     sb.append(',');
-                                sb.append(astToJson((parser.ASTNode) item));
+                                sb.append(astToJson((ASTNode) item));
                                 first = false;
                             } else if (item != null && item.getClass().getSimpleName().equals("DictEntry")) {
                                 // DictEntry: tem campos key e value (ASTNode)
@@ -179,10 +180,10 @@ public class WebServer {
                                             .append("\"type\":\"DictEntry\",")
                                             .append("\"label\":\"entry\",")
                                             .append("\"children\":[")
-                                            .append(key instanceof parser.ASTNode ? astToJson((parser.ASTNode) key)
+                                            .append(key instanceof ASTNode ? astToJson((ASTNode) key)
                                                     : "null")
                                             .append(',')
-                                            .append(val instanceof parser.ASTNode ? astToJson((parser.ASTNode) val)
+                                            .append(val instanceof ASTNode ? astToJson((ASTNode) val)
                                                     : "null")
                                             .append("]}");
                                     first = false;
