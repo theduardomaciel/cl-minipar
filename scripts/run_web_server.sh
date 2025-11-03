@@ -29,9 +29,12 @@ echo "Compilacao concluida com sucesso!"
 echo ""
 echo "Iniciando servidor web..."
 echo ""
+echo "Diretorio de trabalho: $(pwd)"
+echo ""
 
 # Executar o servidor (permanecer na raiz do projeto)
-java -cp build WebServer
+cd "$PROJECT_DIR"
+java -cp build server.WebServer
 
 # Aguardar o servidor encerrar
 echo ""

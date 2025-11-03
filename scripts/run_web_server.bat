@@ -26,8 +26,11 @@ echo [OK] Compilacao concluida com sucesso!
 echo.
 echo [2/2] Iniciando servidor web...
 echo.
+echo Diretorio de trabalho: %CD%
+echo.
 
 REM Executar o servidor (manter na raiz do projeto)
+cd /d "%~dp0\.."
 java -cp build server.WebServer
 
 echo.
