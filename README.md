@@ -150,7 +150,7 @@ A gramática BNF da linguagem MiniPar que desenvolvemos nesse projeto está disp
 ## 🎥 Demonstrações em Vídeo
 
 > 🎬 **Link para o vídeo da Atividade 2:**
-> [pendente]
+> https://youtu.be/wPA3SGk2JcE
 
 O vídeo mostra:
 
@@ -160,7 +160,7 @@ O vídeo mostra:
 * Explicação breve da arquitetura do projeto.
 
 > 🎬 **Link para o vídeo da Versão Final:**
-> [pendente]
+> https://youtu.be/qv40J0rbcr4
 
 O vídeo mostra:
 
