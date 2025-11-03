@@ -1,11 +1,14 @@
+package server;
+
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
+import interpreter.ExecutionSession;
 import lexer.Lexer;
 import lexer.Token;
+import parser.Interpreter;
 import parser.Parser;
 import parser.Program;
-import parser.Interpreter;
 
 import java.io.*;
 import java.net.InetSocketAddress;

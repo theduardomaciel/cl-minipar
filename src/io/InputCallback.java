@@ -1,4 +1,4 @@
-package parser;
+package io;
 
 /**
  * Interface para callback de entrada de dados.

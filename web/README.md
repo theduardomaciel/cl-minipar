@@ -66,7 +66,7 @@ web/
 └── examples.js         # Exemplos de código
 
 src/
-└── WebServer.java      # Servidor HTTP
+└── server.WebServer.java      # Servidor HTTP
 ```
 
 ## 🔧 Tecnologias Utilizadas
@@ -100,7 +100,7 @@ Temas disponíveis: monokai, dracula, material, solarized, etc.
 
 ### Alterar a Porta do Servidor
 
-Edite `WebServer.java`:
+Edite `server.WebServer.java`:
 ```java
 private static final int PORT = 8080; // Altere aqui
 ```
@@ -133,7 +133,7 @@ Content-Type: text/plain; charset=utf-8
 ## 🐛 Solução de Problemas
 
 ### Porta já em uso
-Se a porta 8080 já estiver em uso, altere a constante `PORT` em `WebServer.java` e recompile.
+Se a porta 8080 já estiver em uso, altere a constante `PORT` em `server.WebServer.java` e recompile.
 
 ### Erro ao conectar
 Verifique se:

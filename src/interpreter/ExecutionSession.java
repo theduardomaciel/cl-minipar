@@ -1,3 +1,6 @@
+package interpreter;
+
+import io.InputCallback;
 import parser.*;
 import lexer.*;
 import java.io.*;

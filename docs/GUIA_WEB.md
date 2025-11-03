@@ -21,13 +21,13 @@ Abra o terminal na pasta do projeto e execute:
 **Windows (PowerShell/CMD):**
 ```cmd
 mkdir build
-javac -encoding UTF-8 -d build -sourcepath src src\WebServer.java src\Main.java src\lexer\*.java src\parser\*.java src\interpreter\*.java
+javac -encoding UTF-8 -d build -sourcepath src src\server.WebServer.java src\Main.java src\lexer\*.java src\parser\*.java src\interpreter\*.java
 ```
 
 **Linux/Mac/Git Bash:**
 ```bash
 mkdir -p build
-javac -encoding UTF-8 -d build -sourcepath src src/WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
+javac -encoding UTF-8 -d build -sourcepath src src/server.WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
 ```
 
 ### 2️⃣ Iniciar o servidor
@@ -36,12 +36,12 @@ javac -encoding UTF-8 -d build -sourcepath src src/WebServer.java src/Main.java 
 
 **Windows:**
 ```cmd
-java -cp build WebServer
+java -cp build server.WebServer
 ```
 
 **Linux/Mac/Git Bash:**
 ```bash
-java -cp build WebServer
+java -cp build server.WebServer
 ```
 
 **Ou use o script automático:**
@@ -187,7 +187,7 @@ Usuário clica "Executar"
     ↓
 Frontend → POST /session/start
     ↓
-Backend cria ExecutionSession (UUID)
+Backend cria interpreter.ExecutionSession (UUID)
     ↓
 Frontend inicia polling (200ms)
     ↓
@@ -218,7 +218,7 @@ Programa continua...
 
 #### Novos Arquivos
 
-**`src/ExecutionSession.java`**
+**`src/interpreter.ExecutionSession.java`**
 - Gerencia execução assíncrona
 - `sessionId` único (UUID)
 - `BlockingQueue` para inputs
@@ -280,6 +280,8 @@ public interface InputCallback {
 ### 🔐 Gerenciamento de Sessões
 
 ```java
+import interpreter.ExecutionSession;
+
 ConcurrentHashMap<String, ExecutionSession> sessions
 ```
 
@@ -356,14 +358,14 @@ println("Idade válida: ", idade);
 ✅ **CORRETO:**
 ```bash
 # Na raiz do projeto (onde está a pasta web/)
-java -cp build WebServer
+java -cp build server.WebServer
 ```
 
 ❌ **ERRADO:**
 ```bash
 # Dentro da pasta build/
 cd build
-java WebServer  # Não vai encontrar ../web/
+java server.WebServer  # Não vai encontrar ../web/
 ```
 
 ### ❌ "Erro ao conectar com o servidor"
@@ -373,7 +375,7 @@ java WebServer  # Não vai encontrar ../web/
 3. Não há firewall bloqueando a porta 8080
 
 ### ❌ Porta 8080 já está em uso
-**Solução:** Altere a porta em `src/WebServer.java`:
+**Solução:** Altere a porta em `src/server.WebServer.java`:
 ```java
 private static final int PORT = 8080; // Mude para 8081, 8082, etc.
 ```

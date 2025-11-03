@@ -3,8 +3,8 @@ import lexer.Token;
 import lexer.TokenType;
 import parser.Parser;
 import parser.ASTNode;
-import parser.Program;
 import parser.Interpreter;
+import parser.Program;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -85,9 +85,9 @@ public class Main {
      * Executa as fases de análise léxica e sintática
      */
     private static void run(String source, String sourceName) {
-    System.out.println("\n" + "─".repeat(70));
-    System.out.println("📄 Analisando/Executando: " + sourceName);
-    System.out.println("─".repeat(70));
+        System.out.println("\n" + "─".repeat(70));
+        System.out.println("📄 Analisando/Executando: " + sourceName);
+        System.out.println("─".repeat(70));
 
         // ===== FASE 1: ANÁLISE LÉXICA =====
         System.out.println("\n🔍 FASE 1: ANÁLISE LÉXICA (LEXER)");
@@ -102,10 +102,10 @@ public class Main {
         for (Token token : tokens) {
             if (token.type() != TokenType.EOF) {
                 System.out.printf("  %-20s %-15s (Linha: %d, Coluna: %d)%n",
-                    token.type(),
-                    "'" + token.lexeme() + "'",
-                    token.line(),
-                    token.column());
+                        token.type(),
+                        "'" + token.lexeme() + "'",
+                        token.line(),
+                        token.column());
             }
         }
 
@@ -142,7 +142,8 @@ public class Main {
 
     /**
      * Imprime a Árvore Sintática Abstrata (AST) de forma hierárquica.
-     * @param node Nó raiz da AST a ser impresso.
+     * 
+     * @param node  Nó raiz da AST a ser impresso.
      * @param depth Nível de profundidade para indentação visual.
      */
     private static void printAST(ASTNode node, int depth) {

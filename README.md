@@ -33,7 +33,7 @@ A aplicação segue a estrutura clássica de um *front-end de compilador*, organ
 ```
 src/
 ├── Main.java              # Interface CLI
-├── WebServer.java         # Servidor HTTP para interface web
+├── server.WebServer.java         # Servidor HTTP para interface web
 ├── lexer/  
 │   ├── Lexer.java
 │   ├── Token.java
@@ -85,15 +85,15 @@ chmod +x scripts/run_web_server.sh
 Compile e execute (certifique-se de estar na raiz do projeto):
 ```bash
 # Compilar
-javac -encoding UTF-8 -d build -sourcepath src src/WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
+javac -encoding UTF-8 -d build -sourcepath src src/server.WebServer.java src/Main.java src/lexer/*.java src/parser/*.java src/interpreter/*.java
 
 # Executar (DA RAIZ DO PROJETO)
-java -cp build WebServer
+java -cp build server.WebServer
 ```
 
 Acesse no navegador: **http://localhost:8080**
 
-> **⚠️ IMPORTANTE:** Execute o comando `java -cp build WebServer` **da raiz do projeto**, onde está a pasta `web/`. Não execute de dentro da pasta `build/`.
+> **⚠️ IMPORTANTE:** Execute o comando `java -cp build server.WebServer` **da raiz do projeto**, onde está a pasta `web/`. Não execute de dentro da pasta `build/`.
 
 A interface web oferece:
 - ✨ Syntax highlighting para MiniPar

@@ -510,7 +510,7 @@ Vetor ordenado: [-100, -40, -3, 10, 70, 80]
 - [ ] **Interface do Interpretador MINIPAR**
   <details>
     <summary><strong>Exemplo da Interface</strong></summary>
-    <img src="./.github/images/interface_minipar.png" alt="Exemplo da interface do Interpretador MINIPAR" width="600"/>
+    <img src="../.github/images/interface_minipar.png" alt="Exemplo da interface do Interpretador MINIPAR" width="600"/>
   </details>
 - [ ] **Product Backlog**  
   Lista de funcionalidades e requisitos do Interpretador MINIPAR
@@ -547,7 +547,7 @@ Vetor ordenado: [-100, -40, -3, 10, 70, 80]
 ### 🎨 Tela do Interpretador MINIPAR
 
 <p align="center">
-  <img src="./.github/images/interface_minipar.png" alt="Interface do Interpretador MINIPAR" width="600"/>
+  <img src="../.github/images/interface_minipar.png" alt="Interface do Interpretador MINIPAR" width="600"/>
 </p>
 
 ---
@@ -559,15 +559,15 @@ Vetor ordenado: [-100, -40, -3, 10, 70, 80]
 </div>
 
 <p align="center">
-  <img src="./.github/images/arquitetura_uml.png" alt="Arquitetura do interpretador utilizando a UML" width="700"/>
+  <img src="../.github/images/arquitetura_uml.png" alt="Arquitetura do interpretador utilizando a UML" width="700"/>
 </p>
 
 <p align="center">
-  <img src="./.github/images/componentes_uml.png" alt="Diagrama de componentes do Interpretador Utilizando a UML" width="700"/>
+  <img src="../.github/images/componentes_uml.png" alt="Diagrama de componentes do Interpretador Utilizando a UML" width="700"/>
 </p>
 
 <p align="center">
-  <img src="./.github/images/diagrama_classes_uml.png" alt="Diagrama de Classes dos Componentes" width="700"/>
+  <img src="../.github/images/diagrama_classes_uml.png" alt="Diagrama de Classes dos Componentes" width="700"/>
 </p>
 
 ---
@@ -579,7 +579,7 @@ Vetor ordenado: [-100, -40, -3, 10, 70, 80]
 > [!TIP]
 > Representar um relógio através de um componente de software usando a notação UML.
 
-![Componente de software "Relógio" utilizando a notação UML](./.github/images/componente_relogio_uml.png)
+![Componente de software "Relógio" utilizando a notação UML](../.github/images/componente_relogio_uml.png)
 
 **Operações da interface `IRelogio` do componente `Relogio`:**
 - `mostrar_hora()`: Exibe a hora atual.
@@ -588,7 +588,7 @@ Vetor ordenado: [-100, -40, -3, 10, 70, 80]
 
 #### Modelagem do Componente Relogio (via Diagrama de Classes UML)
 
-![Modelagem do componente "Relogio" em UML](./.github/images/relogio_uml.png)
+![Modelagem do componente "Relogio" em UML](../.github/images/relogio_uml.png)
 
 A classe Relogio deve fornecer a implementação de cada operação (`mostrar_hora ()` – `atualizar_data_hora (data)` – `forma_relogio (f)`) da Interface IRelogio.
 
